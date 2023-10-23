@@ -1,4 +1,4 @@
-package Rater.Controllers;
+package RateControl.Controllers;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;

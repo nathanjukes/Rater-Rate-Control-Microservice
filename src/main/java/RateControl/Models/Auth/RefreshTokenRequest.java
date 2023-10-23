@@ -1,4 +1,4 @@
-package Rater.Models.Auth;
+package RateControl.Models.Auth;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.validation.constraints.NotNull;

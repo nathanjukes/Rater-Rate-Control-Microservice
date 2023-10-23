@@ -1,6 +1,6 @@
-package Rater.Repositories;
+package RateControl.Repositories;
 
-import Rater.Models.Org.Org;
+import RateControl.Models.Org.Org;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

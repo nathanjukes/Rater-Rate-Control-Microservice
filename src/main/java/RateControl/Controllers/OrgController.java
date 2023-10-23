@@ -1,18 +1,16 @@
-package Rater.Controllers;
+package RateControl.Controllers;
 
-import Rater.Exceptions.BadRequestException;
-import Rater.Exceptions.DataConflictException;
-import Rater.Exceptions.InternalServerException;
-import Rater.Exceptions.UnauthorizedException;
-import Rater.Models.Org.Org;
-import Rater.Models.Org.OrgCreateRequest;
-import Rater.Services.OrgService;
+import RateControl.Exceptions.BadRequestException;
+import RateControl.Exceptions.DataConflictException;
+import RateControl.Exceptions.InternalServerException;
+import RateControl.Models.Org.Org;
+import RateControl.Models.Org.OrgCreateRequest;
+import RateControl.Services.OrgService;
 import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;

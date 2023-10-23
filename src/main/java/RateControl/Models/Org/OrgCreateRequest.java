@@ -1,4 +1,4 @@
-package Rater.Models.Org;
+package RateControl.Models.Org;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.validation.constraints.NotBlank;

@@ -1,4 +1,4 @@
-package Rater.Models.Auth;
+package RateControl.Models.Auth;
 
 import java.util.Date;
 

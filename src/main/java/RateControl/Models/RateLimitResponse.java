@@ -1,4 +1,4 @@
-package Rater.Models;
+package RateControl.Models;
 
 import java.time.LocalDateTime;
 

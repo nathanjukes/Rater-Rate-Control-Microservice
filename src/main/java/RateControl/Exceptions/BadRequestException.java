@@ -1,4 +1,4 @@
-package Rater.Exceptions;
+package RateControl.Exceptions;
 
 public class BadRequestException extends Exception {
     public BadRequestException() {

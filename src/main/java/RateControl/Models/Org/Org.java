@@ -1,9 +1,8 @@
-package Rater.Models.Org;
+package RateControl.Models.Org;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
