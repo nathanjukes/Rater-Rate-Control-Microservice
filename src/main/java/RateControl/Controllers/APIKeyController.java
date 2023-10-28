@@ -6,6 +6,7 @@ import RateControl.Exceptions.UnauthorizedException;
 import RateControl.Models.Org.Org;
 import RateControl.Security.SecurityService;
 import RateControl.Services.APIKeyService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,7 +46,8 @@ public class APIKeyController {
     }
 
     @RequestMapping(value = "/{serviceId}", method = POST)
-    public ResponseEntity<Optional<String>> createApiKey(@PathVariable UUID serviceId) throws InternalServerException, UnauthorizedException, BadRequestException {
+    public ResponseEntity<Optional<String>> createApiKey(@PathVariable UUID serviceId, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, BadRequestException {
+        Optional<String> auth = securityService.getAuthToken(servletRequest);
         Optional<Org> org = securityService.getAuthedOrg();
         throwIfNoAuth(org);
 
@@ -52,6 +55,16 @@ public class APIKeyController {
             throw new BadRequestException();
         }
 
-        return ResponseEntity.ok(apiKeyService.createApiKey(org.orElseThrow(), serviceId));
+        // Generates ApiKey for Org/ServiceId Pair - validates serviceId exists and belongs to Org given
+        // Could auth to see if already exists ?
+        Optional<String> apiKey = apiKeyService.createApiKey(org.orElseThrow(), serviceId, auth.orElseThrow());
+
+        return ResponseEntity.ok(apiKey);
     }
+
+    @RequestMapping(value = "/test")
+    public ResponseEntity<Optional<String>> getTest(HttpServletRequest request) {
+        return ResponseEntity.ok(securityService.getAuthToken(request));
+    }
+
 }

@@ -5,6 +5,7 @@ import RateControl.Exceptions.UnauthorizedException;
 import RateControl.Models.Org.Org;
 import RateControl.Models.User.User;
 import RateControl.Services.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -67,5 +68,16 @@ public class SecurityService {
         if (org.isEmpty()) {
             throw new UnauthorizedException();
         }
+    }
+
+    public Optional<String> getAuthToken(final HttpServletRequest request) {
+        var header = request.getHeader("Authorization");
+        if (header != null) {
+            var parts = header.split(" ");
+            if (parts.length == 2 && parts[0].equalsIgnoreCase("Bearer")) {
+                return Optional.ofNullable(parts[1]);
+            }
+        }
+        return null;
     }
 }

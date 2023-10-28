@@ -19,20 +19,20 @@ public class RaterManagementClient {
 
     private String API_Version = "v1";
 
-    private String getBaseUrl() {
-        return RATER_MANAGEMENT_URL + "/" + API_Version;
-    }
-
-    public boolean serviceExists(UUID serviceId, String auth) {
+    public boolean serviceExists(UUID serviceId, UUID orgId, String auth) {
         String url = getBaseUrl() + "/services" + "/" + serviceId;
 
         JSONObject jsonObject = getResource(url, auth);
 
-        return !jsonObject.isEmpty();
-    }
+        if (jsonObject == null || jsonObject.isEmpty()) {
+            return false;
+        }
 
-    public boolean orgExists(UUID orgId) {
-        return false;
+        // Try to get orgId from service
+        // Should not really be able to ever fail here - with the user token they should only see orgId that they are valid for
+        UUID orgIdReturned = UUID.fromString((String) jsonObject.get("orgId"));
+
+        return orgId.equals(orgIdReturned);
     }
 
     private JSONObject getResource(String url, String auth) {
@@ -41,7 +41,7 @@ public class RaterManagementClient {
             HttpResponse response;
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpGet getConnection = new HttpGet(url);
-            getConnection.setHeader("Authorization", "Bearer " + "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0RW1haWwyQGdtYWlsLmNvbSIsImlhdCI6MTY5ODE0OTQyMywiZXhwIjoxNjk4MjM1ODIzfQ.UNooP_YLvsI67nWpnHCbs9X-6mItddl_zVA6YyPeHyM85HsLVThdeusWoPsZOmm8urQHw5iiXI2-cEVvhs2qng");
+            getConnection.setHeader("Authorization", "Bearer " + auth);
             try {
                 response = httpClient.execute(getConnection);
                 String JSONString = EntityUtils.toString(response.getEntity(), "UTF-8");
@@ -53,5 +53,9 @@ public class RaterManagementClient {
             e.printStackTrace();
         }
         return jsonObject;
+    }
+
+    private String getBaseUrl() {
+        return RATER_MANAGEMENT_URL + "/" + API_Version;
     }
 }
