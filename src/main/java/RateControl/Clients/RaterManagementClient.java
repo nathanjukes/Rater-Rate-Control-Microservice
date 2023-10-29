@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 @Component
-public class RaterManagementClient {
+public class RaterManagementClient extends Client {
     @Value("${rater.management.url}")
     private String RATER_MANAGEMENT_URL;
 
@@ -23,7 +23,6 @@ public class RaterManagementClient {
         String url = getBaseUrl() + "/services" + "/" + serviceId;
 
         JSONObject jsonObject = getResource(url, auth);
-
         if (jsonObject == null || jsonObject.isEmpty()) {
             return false;
         }
@@ -33,26 +32,6 @@ public class RaterManagementClient {
         UUID orgIdReturned = UUID.fromString((String) jsonObject.get("orgId"));
 
         return orgId.equals(orgIdReturned);
-    }
-
-    private JSONObject getResource(String url, String auth) {
-        JSONObject jsonObject = null;
-        try {
-            HttpResponse response;
-            HttpClient httpClient = HttpClientBuilder.create().build();
-            HttpGet getConnection = new HttpGet(url);
-            getConnection.setHeader("Authorization", "Bearer " + auth);
-            try {
-                response = httpClient.execute(getConnection);
-                String JSONString = EntityUtils.toString(response.getEntity(), "UTF-8");
-                jsonObject = new JSONObject(JSONString);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return jsonObject;
     }
 
     private String getBaseUrl() {
