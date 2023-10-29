@@ -3,6 +3,7 @@ package RateControl.Controllers;
 import RateControl.Exceptions.BadRequestException;
 import RateControl.Exceptions.InternalServerException;
 import RateControl.Exceptions.UnauthorizedException;
+import RateControl.Models.Auth.Auth;
 import RateControl.Models.Org.Org;
 import RateControl.Security.SecurityService;
 import RateControl.Services.APIKeyService;
@@ -47,7 +48,7 @@ public class APIKeyController {
 
     @RequestMapping(value = "/{serviceId}", method = POST)
     public ResponseEntity<Optional<String>> createApiKey(@PathVariable UUID serviceId, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, BadRequestException {
-        Optional<String> auth = securityService.getAuthToken(servletRequest);
+        Optional<Auth> auth = securityService.getAuthToken(servletRequest);
         Optional<Org> org = securityService.getAuthedOrg();
         throwIfNoAuth(org);
 
@@ -63,8 +64,7 @@ public class APIKeyController {
     }
 
     @RequestMapping(value = "/test")
-    public ResponseEntity<Optional<String>> getTest(HttpServletRequest request) {
+    public ResponseEntity<Optional<Auth>> getTest(HttpServletRequest request) {
         return ResponseEntity.ok(securityService.getAuthToken(request));
     }
-
 }

@@ -2,6 +2,7 @@ package RateControl.Security;
 
 import RateControl.Exceptions.InternalServerException;
 import RateControl.Exceptions.UnauthorizedException;
+import RateControl.Models.Auth.Auth;
 import RateControl.Models.Org.Org;
 import RateControl.Models.User.User;
 import RateControl.Services.UserService;
@@ -70,14 +71,17 @@ public class SecurityService {
         }
     }
 
-    public Optional<String> getAuthToken(final HttpServletRequest request) {
+    public Optional<Auth> getAuthToken(final HttpServletRequest request) {
+        // Read auth header and parse into Auth object
+        // Authorization = "Bearer {token}"
         var header = request.getHeader("Authorization");
         if (header != null) {
             var parts = header.split(" ");
             if (parts.length == 2 && parts[0].equalsIgnoreCase("Bearer")) {
-                return Optional.ofNullable(parts[1]);
+                String jwt = parts[1];
+                return Optional.of(new Auth(jwt));
             }
         }
-        return null;
+        return Optional.empty();
     }
 }
