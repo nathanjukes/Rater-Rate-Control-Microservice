@@ -1,11 +1,5 @@
 package RateControl.Clients;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -17,7 +11,7 @@ public class RaterManagementClient extends Client {
     @Value("${rater.management.url}")
     private String RATER_MANAGEMENT_URL;
 
-    private String API_Version = "v1";
+    private final String API_Version = "v1";
 
     public boolean serviceExists(UUID serviceId, UUID orgId, String auth) {
         String url = getBaseUrl() + "/services" + "/" + serviceId;
