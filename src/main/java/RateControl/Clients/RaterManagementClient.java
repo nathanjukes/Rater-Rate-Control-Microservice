@@ -12,9 +12,10 @@ public class RaterManagementClient extends Client {
     private String RATER_MANAGEMENT_URL;
 
     private final String API_Version = "v1";
+    private final String SERVICES_URI = "services";
 
     public boolean serviceExists(UUID serviceId, UUID orgId, String auth) {
-        String url = getBaseUrl() + "/services" + "/" + serviceId;
+        final String url = getBaseUrl() + "/" + SERVICES_URI + "/" + serviceId;
 
         JSONObject jsonObject = getResource(url, auth);
         if (jsonObject == null || jsonObject.isEmpty()) {

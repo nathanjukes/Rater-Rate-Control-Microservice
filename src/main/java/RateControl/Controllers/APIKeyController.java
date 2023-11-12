@@ -15,12 +15,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
 
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static RateControl.Security.SecurityService.throwIfNoAuth;
 
@@ -38,6 +40,11 @@ public class APIKeyController {
         this.securityService = securityService;
     }
 
+    @RequestMapping(value = "/{apiKey}", method = GET)
+    public ResponseEntity<Optional<String>> getApiKeyValue(@PathVariable String apiKey) {
+        return ResponseEntity.ok(apiKeyService.getServiceIdForApiKey(apiKey));
+    }
+
     @RequestMapping(value = "", method = POST)
     public ResponseEntity<Optional<ApiKey>> createApiKey(@RequestBody @Valid CreateApiKeyRequest apiKeyRequest, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, BadRequestException {
         Optional<Auth> auth = securityService.getAuthToken(servletRequest);
@@ -49,8 +56,11 @@ public class APIKeyController {
         }
 
         // Generates ApiKey for Org/ServiceId Pair - validates serviceId exists and belongs to Org given
-        // Could auth to see if already exists ?
-        Optional<ApiKey> apiKey = apiKeyService.createApiKey(org.orElseThrow(), apiKeyRequest.getServiceId(), auth.orElseThrow());
+        Optional<ApiKey> apiKey = apiKeyService.createApiKey(
+                org.orElseThrow(),
+                apiKeyRequest.getServiceId(),
+                auth.orElseThrow()
+        );
 
         return ResponseEntity.ok(apiKey);
     }

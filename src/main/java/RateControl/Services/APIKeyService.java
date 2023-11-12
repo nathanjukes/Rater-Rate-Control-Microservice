@@ -2,10 +2,12 @@ package RateControl.Services;
 
 import RateControl.Clients.RaterManagementClient;
 import RateControl.Controllers.OrgController;
+import RateControl.Exceptions.InternalServerException;
 import RateControl.Exceptions.UnauthorizedException;
 import RateControl.Models.ApiKey.ApiKey;
 import RateControl.Models.Auth.Auth;
 import RateControl.Models.Org.Org;
+import RateControl.Repositories.ApiKeyRepository;
 import RateControl.Security.SecurityService;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
@@ -23,15 +25,21 @@ import java.util.UUID;
 public class APIKeyService {
     private static final Logger log = LogManager.getLogger(APIKeyService.class);
 
+    private final ApiKeyRepository apiKeyRepository;
     private final OrgService orgService;
     private final RaterManagementClient raterManagementClient;
     private final SecurityService securityService;
 
     @Autowired
-    public APIKeyService(OrgService orgService, RaterManagementClient raterManagementClient, SecurityService securityService) {
+    public APIKeyService(ApiKeyRepository apiKeyRepository, OrgService orgService, RaterManagementClient raterManagementClient, SecurityService securityService) {
+        this.apiKeyRepository = apiKeyRepository;
         this.orgService = orgService;
         this.raterManagementClient = raterManagementClient;
         this.securityService = securityService;
+    }
+
+    public Optional<String> getServiceIdForApiKey(String apiKey) {
+        return Optional.ofNullable(apiKeyRepository.getByApiKey(apiKey));
     }
 
     public Optional<ApiKey> createApiKey(Org org, UUID serviceId, Auth auth) throws UnauthorizedException {
@@ -44,10 +52,16 @@ public class APIKeyService {
 
         ApiKey apiKey = generateApiKey();
 
-        // Try to save ApiKey, ServiceId pair
-
+        saveApiKey(apiKey, serviceId);
 
         return Optional.of(apiKey);
+    }
+
+    private void saveApiKey(ApiKey apiKey, UUID serviceId) {
+        // if api key already exists for org, serviceId pair then throw bad request
+
+        // save api key
+        apiKeyRepository.save(apiKey, serviceId);
     }
 
     private ApiKey generateApiKey() {
