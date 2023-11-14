@@ -3,6 +3,8 @@ package RateControl.Repositories;
 import RateControl.Models.ApiKey.ApiKey;
 import io.lettuce.core.api.StatefulRedisConnection;
 import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.Resource;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;

@@ -2,6 +2,7 @@ package RateControl.Services;
 
 import RateControl.Clients.RaterManagementClient;
 import RateControl.Controllers.OrgController;
+import RateControl.Exceptions.InternalServerException;
 import RateControl.Exceptions.UnauthorizedException;
 import RateControl.Models.ApiKey.ApiKey;
 import RateControl.Models.Auth.Auth;
@@ -37,6 +38,10 @@ public class APIKeyService {
         this.securityService = securityService;
     }
 
+    public Optional<String> getServiceIdForApiKey(String apiKey) {
+        return Optional.ofNullable(apiKeyRepository.getByApiKey(apiKey));
+    }
+
     public Optional<ApiKey> createApiKey(Org org, UUID serviceId, Auth auth) throws UnauthorizedException {
         // Need to check Org + Service Still exists
         boolean orgServicePairExists = validateServiceId(org, serviceId, auth);
@@ -47,11 +52,11 @@ public class APIKeyService {
 
         ApiKey apiKey = generateApiKey();
 
-        // Try to save ApiKey, ServiceId pair
-
+        saveApiKey(apiKey, serviceId);
 
         return Optional.of(apiKey);
     }
+
 
     public void saveApiKey(ApiKey apiKey, UUID serviceId) {
         // if api key already exists for org, serviceId pair then throw bad request
