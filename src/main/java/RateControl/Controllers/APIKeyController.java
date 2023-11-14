@@ -55,11 +55,6 @@ public class APIKeyController {
         return ResponseEntity.ok("done");
     }
 
-    @RequestMapping(value = "/{apiKey}", method = GET)
-    public ResponseEntity<Optional<String>> getApiKeyValue(@PathVariable String apiKey) {
-        return ResponseEntity.ok(apiKeyService.getServiceIdForApiKey(apiKey));
-    }
-
     @RequestMapping(value = "", method = POST)
     public ResponseEntity<Optional<ApiKey>> createApiKey(@RequestBody @Valid CreateApiKeyRequest apiKeyRequest, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, BadRequestException {
         Optional<Auth> auth = securityService.getAuthToken(servletRequest);

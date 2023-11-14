@@ -38,10 +38,6 @@ public class APIKeyService {
         this.securityService = securityService;
     }
 
-    public Optional<String> getServiceIdForApiKey(String apiKey) {
-        return Optional.ofNullable(apiKeyRepository.getByApiKey(apiKey));
-    }
-
     public Optional<ApiKey> createApiKey(Org org, UUID serviceId, Auth auth) throws UnauthorizedException {
         // Need to check Org + Service Still exists
         boolean orgServicePairExists = validateServiceId(org, serviceId, auth);
