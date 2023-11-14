@@ -57,11 +57,23 @@ public class APIKeyService {
         return Optional.of(apiKey);
     }
 
-    private void saveApiKey(ApiKey apiKey, UUID serviceId) {
+
+    public void saveApiKey(ApiKey apiKey, UUID serviceId) {
         // if api key already exists for org, serviceId pair then throw bad request
 
         // save api key
         apiKeyRepository.save(apiKey, serviceId);
+    }
+
+    public void saveApiKey(String apiKey, UUID serviceId) {
+        // if api key already exists for org, serviceId pair then throw bad request
+
+        // save api key
+        apiKeyRepository.save(apiKey, serviceId);
+    }
+
+    public String getServiceIdForApiKey(String apiKey) {
+        return apiKeyRepository.getByApiKey(apiKey);
     }
 
     private ApiKey generateApiKey() {

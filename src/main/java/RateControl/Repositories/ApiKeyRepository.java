@@ -1,6 +1,8 @@
 package RateControl.Repositories;
 
 import RateControl.Models.ApiKey.ApiKey;
+import io.lettuce.core.api.StatefulRedisConnection;
+import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.annotation.Resource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -9,18 +11,26 @@ import java.util.UUID;
 
 @Repository
 public class ApiKeyRepository {
-    @Resource(name = "redisTemplate")
-    private RedisTemplate<String, String> apiKeyRedisTemplate;
+    private final StatefulRedisConnection<String, String> redisConnection;
+
+    @Autowired
+    public ApiKeyRepository(StatefulRedisConnection<String, String> redisConnection) {
+        this.redisConnection = redisConnection;
+    }
 
     public void save(ApiKey apiKey, UUID serviceId) {
-        apiKeyRedisTemplate.opsForValue().set(apiKey.getApiKey(), serviceId.toString());
+        redisConnection.sync().set(apiKey.getApiKey(), serviceId.toString());
+    }
+
+    public void save(String apiKey, UUID serviceId) {
+        redisConnection.sync().set(apiKey, serviceId.toString());
     }
 
     public String getByApiKey(String apiKey) {
-        return apiKeyRedisTemplate.opsForValue().get(apiKey);
+        return redisConnection.sync().get(apiKey);
     }
 
     public String getByApiKey(ApiKey apiKey) {
-        return apiKeyRedisTemplate.opsForValue().get(apiKey.getApiKey());
+        return redisConnection.sync().get(apiKey.getApiKey());
     }
 }
