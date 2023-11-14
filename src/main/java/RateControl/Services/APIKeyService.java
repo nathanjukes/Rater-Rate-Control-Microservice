@@ -6,6 +6,7 @@ import RateControl.Exceptions.UnauthorizedException;
 import RateControl.Models.ApiKey.ApiKey;
 import RateControl.Models.Auth.Auth;
 import RateControl.Models.Org.Org;
+import RateControl.Repositories.ApiKeyRepository;
 import RateControl.Security.SecurityService;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
@@ -23,12 +24,14 @@ import java.util.UUID;
 public class APIKeyService {
     private static final Logger log = LogManager.getLogger(APIKeyService.class);
 
+    private final ApiKeyRepository apiKeyRepository;
     private final OrgService orgService;
     private final RaterManagementClient raterManagementClient;
     private final SecurityService securityService;
 
     @Autowired
-    public APIKeyService(OrgService orgService, RaterManagementClient raterManagementClient, SecurityService securityService) {
+    public APIKeyService(ApiKeyRepository apiKeyRepository, OrgService orgService, RaterManagementClient raterManagementClient, SecurityService securityService) {
+        this.apiKeyRepository = apiKeyRepository;
         this.orgService = orgService;
         this.raterManagementClient = raterManagementClient;
         this.securityService = securityService;
@@ -48,6 +51,24 @@ public class APIKeyService {
 
 
         return Optional.of(apiKey);
+    }
+
+    public void saveApiKey(ApiKey apiKey, UUID serviceId) {
+        // if api key already exists for org, serviceId pair then throw bad request
+
+        // save api key
+        apiKeyRepository.save(apiKey, serviceId);
+    }
+
+    public void saveApiKey(String apiKey, UUID serviceId) {
+        // if api key already exists for org, serviceId pair then throw bad request
+
+        // save api key
+        apiKeyRepository.save(apiKey, serviceId);
+    }
+
+    public String getServiceIdForApiKey(String apiKey) {
+        return apiKeyRepository.getByApiKey(apiKey);
     }
 
     private ApiKey generateApiKey() {
