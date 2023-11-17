@@ -30,7 +30,7 @@ public class ApiKeyRepository {
     }
 
     public void save(String apiKey, UUID serviceId) {
-        redisConnection.sync().set(apiKey, serviceId.toString());
+        redisConnection.sync().hset(APIKEY_TO_SERVICEID_KEY, apiKey, serviceId.toString());
     }
 
     public boolean apiKeyExistsForServiceId(String serviceId) {
