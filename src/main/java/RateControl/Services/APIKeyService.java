@@ -2,6 +2,7 @@ package RateControl.Services;
 
 import RateControl.Clients.RaterManagementClient;
 import RateControl.Controllers.OrgController;
+import RateControl.Exceptions.BadRequestException;
 import RateControl.Exceptions.InternalServerException;
 import RateControl.Exceptions.UnauthorizedException;
 import RateControl.Models.ApiKey.ApiKey;
@@ -38,7 +39,7 @@ public class APIKeyService {
         this.securityService = securityService;
     }
 
-    public Optional<ApiKey> createApiKey(Org org, UUID serviceId, Auth auth) throws UnauthorizedException {
+    public Optional<ApiKey> createApiKey(Org org, UUID serviceId, Auth auth) throws UnauthorizedException, BadRequestException {
         // Need to check Org + Service Still exists
         boolean orgServicePairExists = validateServiceId(org, serviceId, auth);
 
@@ -48,16 +49,21 @@ public class APIKeyService {
 
         ApiKey apiKey = generateApiKey();
 
+        log.info("Saving API Key for orgId: {} serviceId: {}", org.getId(), serviceId);
         saveApiKey(apiKey, serviceId);
 
         return Optional.of(apiKey);
     }
 
 
-    public void saveApiKey(ApiKey apiKey, UUID serviceId) {
-        // if api key already exists for org, serviceId pair then throw bad request
+    private void saveApiKey(ApiKey apiKey, UUID serviceId) throws BadRequestException {
+        // Validate that api key does not already exist for serviceId
+        if (apiKeyRepository.apiKeyExistsForServiceId(serviceId.toString())) {
+            log.info("API Key already exists for serviceId: {}", serviceId);
+            throw new BadRequestException();
+        }
 
-        // save api key
+        // save APIKey/ServiceId pair
         apiKeyRepository.save(apiKey, serviceId);
     }
 
@@ -79,7 +85,8 @@ public class APIKeyService {
         return new ApiKey(Base64.getUrlEncoder().encodeToString(keyBytes));
     }
 
-    private boolean validateServiceId(Org org, UUID serviceId, Auth auth) {
+    private boolean validateServiceId(Org org, UUID serviceId, Auth auth) throws BadRequestException {
+        log.info("Validating service id exists for orgId: {} serviceId: {}", org.getId(), serviceId);
         return raterManagementClient.serviceExists(serviceId, org.getId(), auth.getToken());
     }
 }

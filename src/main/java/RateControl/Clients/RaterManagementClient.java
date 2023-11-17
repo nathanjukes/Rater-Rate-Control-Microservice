@@ -1,5 +1,9 @@
 package RateControl.Clients;
 
+import RateControl.Exceptions.BadRequestException;
+import RateControl.Services.APIKeyService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -16,16 +20,24 @@ public class RaterManagementClient extends Client {
     @Value("${rater.management.port}")
     private String RATER_MANAGEMENT_PORT;
 
+    private static final Logger log = LogManager.getLogger(RaterManagementClient.class);
+
     private final String RATER_MANAGEMENT_API = "rater/api";
     private final String API_Version = "v1";
     private final String SERVICES_URI = "services";
 
-    public boolean serviceExists(UUID serviceId, UUID orgId, String auth) {
+    public boolean serviceExists(UUID serviceId, UUID orgId, String auth) throws BadRequestException {
         final String url = getBaseUrl() + "/" + SERVICES_URI + "/" + serviceId;
+        JSONObject jsonObject;
 
-        JSONObject jsonObject = getResource(url, auth);
-        if (jsonObject == null || jsonObject.isEmpty()) {
-            return false;
+        try {
+            jsonObject = getResource(url, auth);
+            if (jsonObject == null || jsonObject.isEmpty()) {
+                return false;
+            }
+        } catch (BadRequestException ex) {
+            log.info("Bad request: Service id does not exist for orgId: {} serviceId: {}", orgId, serviceId);
+            throw ex;
         }
 
         // Try to get orgId from service

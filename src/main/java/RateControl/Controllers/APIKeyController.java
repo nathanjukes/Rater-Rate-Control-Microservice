@@ -81,7 +81,7 @@ public class APIKeyController {
     }
 
     @RequestMapping(value = "/test/{serviceId}", method = GET)
-    public ResponseEntity<Boolean> testServiceIdExists(@PathVariable UUID serviceId, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException {
+    public ResponseEntity<Boolean> testServiceIdExists(@PathVariable UUID serviceId, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, BadRequestException {
         Optional<Auth> auth = securityService.getAuthToken(servletRequest);
 
         return ResponseEntity.ok(r.serviceExists(serviceId, securityService.getAuthedOrg().get().getId(), auth.get().getToken()));
