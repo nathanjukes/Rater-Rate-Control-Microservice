@@ -17,6 +17,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.CompletableFuture;
+
 import static RateControl.Config.RedisFormatter.getApiRequestsKey;
 import static RateControl.Config.RedisFormatter.getMinuteRequestsKey;
 
@@ -32,26 +34,33 @@ public class ApiProcessingService {
         this.apiProcessingRepository = apiProcessingRepository;
     }
 
-    public boolean processRequest(ApiRequest apiRequest, Org org) {
-        final String redisKey = getApiRequestsKey(apiRequest.getUserId().toString(), apiRequest.getApiPath());
+    public void processRequest(ApiRequest apiRequest) {
+        final String redisKey = getApiRequestsKey(apiRequest.getUserId().toString(), apiRequest.getApiPath(), apiRequest.getApiKey().getApiKey());
 
-        // Save Request
-
-        // Key should be in the format of: requests_userId:X_api:Y
-        apiProcessingRepository.saveRequest(redisKey);
-
-
-        // ZADD requests_user:1_api:post:/users 1010 1
-        return false;
+        // Key should be in the format of: requests_userId:X_api:Y_apiKey:Z
+        CompletableFuture.runAsync(() -> apiProcessingRepository.saveRequest(redisKey));
     }
 
-    public RateLimitResponse getApiStatus(ApiRequest apiRequest) {
+    // withOffset used when we want to increment it by one for concurrent requests where the stored value is eventually correct
+    public RateLimitResponse getApiStatus(ApiRequest apiRequest, boolean withOffset) {
         int currentLoad = getNumberOfRequestsLastMinute(apiRequest); // Number of requests in last 60 seconds
+        if (withOffset) {
+            currentLoad++;
+        }
+
         return new RateLimitResponse(apiRequest.getApiPath(), false, currentLoad, 100);
     }
 
     private int getNumberOfRequestsLastMinute(ApiRequest apiRequest) {
-        final String redisKey = getMinuteRequestsKey(apiRequest.getUserId().toString(), apiRequest.getApiPath());
-        return apiProcessingRepository.getMinuteRequests(redisKey);
+        final String redisKey = getMinuteRequestsKey(apiRequest.getUserId().toString(), apiRequest.getApiPath(), apiRequest.getApiKey().getApiKey());
+        int requestCount = 0;
+
+        try {
+            requestCount = apiProcessingRepository.getMinuteRequests(redisKey);
+        } catch (Exception ex) {
+            // First insert not an issue
+        }
+
+        return requestCount;
     }
 }

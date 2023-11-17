@@ -40,20 +40,16 @@ public class ApiProcessingController {
     }
 
     @RequestMapping(value = "", method = POST)
-    public ResponseEntity<Boolean> processRequest(@RequestBody @Valid ApiRequest apiRequest) throws InternalServerException, UnauthorizedException {
+    public ResponseEntity<RateLimitResponse> processRequest(@RequestBody @Valid ApiRequest apiRequest) throws InternalServerException, UnauthorizedException {
         Optional<Org> org = securityService.getAuthedOrg();
         throwIfNoAuth(org);
 
         log.info("Processing API Request: " + apiRequest);
 
-        // validate API key is valid
+        apiProcessingService.processRequest(apiRequest);
+        RateLimitResponse rateLimitResponse = apiProcessingService.getApiStatus(apiRequest, true);
 
-        // store: api, userId, timestamp, api key
-        boolean processed = apiProcessingService.processRequest(apiRequest, org.orElseThrow(UnauthorizedException::new));
-
-        // aggregate this for when a get is called
-
-        return ResponseEntity.ok(processed);
+        return ResponseEntity.ok(rateLimitResponse);
     }
 
     // Query API for it's current status for a given user
@@ -64,6 +60,6 @@ public class ApiProcessingController {
 
         log.info("API Status Requested for: " + apiRequest.getApiPath());
 
-        return ResponseEntity.ok(apiProcessingService.getApiStatus(apiRequest));
+        return ResponseEntity.ok(apiProcessingService.getApiStatus(apiRequest, false));
     }
 }

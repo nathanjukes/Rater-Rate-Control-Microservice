@@ -1,15 +1,13 @@
 package RateControl.Repositories;
 
-import RateControl.Models.ApiKey.ApiKey;
 import io.lettuce.core.api.StatefulRedisConnection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
-import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
-import java.util.random.RandomGenerator;
+import java.util.concurrent.CompletableFuture;
 
 @Repository
 public class ApiProcessingRepository {
@@ -31,17 +29,17 @@ public class ApiProcessingRepository {
     }
 
     public List<String> getAllApiRequestSets() {
-        // keys requests_userId:*:*
-        return redisConnection.sync().keys("requests_userId:*:*");
+        // keys requests_userId:*:*:*
+        return redisConnection.sync().keys("requests_userId:*:*:*");
     }
 
     public void saveMinuteRequestsValue(String key, int value) {
-        // key e.g. minute_requests_userId:X_api:Y
+        // key e.g. minute_requests_userId:X_api:Y_apiKey:Z
         redisConnection.sync().set(key, String.valueOf(value));
     }
 
     public int getMinuteRequests(String key) {
-        // key e.g. minute_requests_userId:X_api:Y
+        // key e.g. minute_requests_userId:X_api:Y_apiKey:Z
         return Integer.parseInt(redisConnection.sync().get(key));
     }
 }
