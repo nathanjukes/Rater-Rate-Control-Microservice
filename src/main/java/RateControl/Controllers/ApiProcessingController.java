@@ -4,10 +4,10 @@ import RateControl.Exceptions.InternalServerException;
 import RateControl.Exceptions.UnauthorizedException;
 import RateControl.Models.ApiKey.ApiKey;
 import RateControl.Models.ApiRequest.ApiRequest;
-import RateControl.Models.Auth.Auth;
+import RateControl.Models.ApiRequest.RateLimitResponse;
 import RateControl.Models.Org.Org;
 import RateControl.Security.SecurityService;
-import RateControl.Services.APIKeyService;
+import RateControl.Services.ApiProcessingService;
 import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,35 +27,43 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 @RequestMapping("/process")
-public class APIProcessingController {
-    private static final Logger log = LogManager.getLogger(APIProcessingController.class);
+public class ApiProcessingController {
+    private static final Logger log = LogManager.getLogger(ApiProcessingController.class);
 
+    private final ApiProcessingService apiProcessingService;
     private final SecurityService securityService;
 
     @Autowired
-    public APIProcessingController(SecurityService securityService) {
+    public ApiProcessingController(ApiProcessingService apiProcessingService, SecurityService securityService) {
+        this.apiProcessingService = apiProcessingService;
         this.securityService = securityService;
     }
 
     @RequestMapping(value = "", method = POST)
-    public ResponseEntity<String> processRequest(@RequestBody @Valid ApiRequest apiRequest) {
-        // Take in API Request and process it - should respond with valid/invalid
-        log.info("Processing API Request: " + apiRequest);
-
-        return ResponseEntity.ok("Processed");
-    }
-
-    // Query API for it's current status for a given user
-    @RequestMapping(value = "/{apiId}", method = GET)
-    public ResponseEntity<String> getApiStatus(@PathVariable UUID apiId, @RequestBody @Valid ApiKey apiKey) throws InternalServerException, UnauthorizedException {
+    public ResponseEntity<Boolean> processRequest(@RequestBody @Valid ApiRequest apiRequest) throws InternalServerException, UnauthorizedException {
         Optional<Org> org = securityService.getAuthedOrg();
         throwIfNoAuth(org);
 
-        log.info("API Status Requested for: " + apiId);
+        log.info("Processing API Request: " + apiRequest);
 
-        // Response
-        //
+        // validate API key is valid
 
-        return ResponseEntity.ok("Status");
+        // store: api, userId, timestamp, api key
+        boolean processed = apiProcessingService.processRequest(apiRequest, org.orElseThrow(UnauthorizedException::new));
+
+        // aggregate this for when a get is called
+
+        return ResponseEntity.ok(processed);
+    }
+
+    // Query API for it's current status for a given user
+    @RequestMapping(value = "", method = GET)
+    public ResponseEntity<RateLimitResponse> getApiStatus(@RequestBody @Valid ApiRequest apiRequest) throws InternalServerException, UnauthorizedException {
+        Optional<Org> org = securityService.getAuthedOrg();
+        throwIfNoAuth(org);
+
+        log.info("API Status Requested for: " + apiRequest.getApiPath());
+
+        return ResponseEntity.ok(apiProcessingService.getApiStatus(apiRequest));
     }
 }

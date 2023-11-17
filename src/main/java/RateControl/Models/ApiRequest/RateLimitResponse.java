@@ -1,17 +1,15 @@
-package RateControl.Models;
+package RateControl.Models.ApiRequest;
 
 import java.time.LocalDateTime;
 
 public class RateLimitResponse {
     private String apiName;
-    private String flatStructure;
     private boolean rateExceeded;
     private int apiLimit;
     private int currentLoad;
 
-    public RateLimitResponse(String apiName, String flatStructure, boolean rateExceeded, int apiLimit, int currentLoad) {
+    public RateLimitResponse(String apiName, boolean rateExceeded, int currentLoad, int apiLimit) {
         this.apiName = apiName;
-        this.flatStructure = flatStructure;
         this.rateExceeded = rateExceeded;
         this.apiLimit = apiLimit;
         this.currentLoad = currentLoad;
@@ -23,14 +21,6 @@ public class RateLimitResponse {
 
     public void setApiName(String apiName) {
         this.apiName = apiName;
-    }
-
-    public String getFlatStructure() {
-        return flatStructure;
-    }
-
-    public void setFlatStructure(String flatStructure) {
-        this.flatStructure = flatStructure;
     }
 
     public boolean isRateExceeded() {

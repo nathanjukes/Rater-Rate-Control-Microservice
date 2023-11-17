@@ -9,7 +9,7 @@ import RateControl.Models.ApiKey.CreateApiKeyRequest;
 import RateControl.Models.Auth.Auth;
 import RateControl.Models.Org.Org;
 import RateControl.Security.SecurityService;
-import RateControl.Services.APIKeyService;
+import RateControl.Services.ApiKeyService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,15 +31,15 @@ import static RateControl.Security.SecurityService.throwIfNoAuth;
 
 @RestController
 @RequestMapping(value = "/auth")
-public class APIKeyController {
-    private static final Logger log = LogManager.getLogger(APIKeyController.class);
+public class ApiKeyController {
+    private static final Logger log = LogManager.getLogger(ApiKeyController.class);
 
-    private final APIKeyService apiKeyService;
+    private final ApiKeyService apiKeyService;
     private final SecurityService securityService;
     private final RaterManagementClient r;
 
     @Autowired
-    public APIKeyController(APIKeyService apiKeyService, SecurityService securityService, RaterManagementClient raterManagementClient) {
+    public ApiKeyController(ApiKeyService apiKeyService, SecurityService securityService, RaterManagementClient raterManagementClient) {
         this.apiKeyService = apiKeyService;
         this.securityService = securityService;
         this.r = raterManagementClient;
@@ -56,7 +57,7 @@ public class APIKeyController {
     }
 
     @RequestMapping(value = "", method = POST)
-    public ResponseEntity<Optional<ApiKey>> createApiKey(@RequestBody @Valid CreateApiKeyRequest apiKeyRequest, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, BadRequestException {
+    public ResponseEntity<Optional<ApiKey>> createApiKey(@RequestBody @Valid CreateApiKeyRequest apiKeyRequest, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, BadRequestException, NoSuchAlgorithmException {
         Optional<Auth> auth = securityService.getAuthToken(servletRequest);
         Optional<Org> org = securityService.getAuthedOrg();
         throwIfNoAuth(org);

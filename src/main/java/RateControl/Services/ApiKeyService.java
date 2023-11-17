@@ -1,9 +1,7 @@
 package RateControl.Services;
 
 import RateControl.Clients.RaterManagementClient;
-import RateControl.Controllers.OrgController;
 import RateControl.Exceptions.BadRequestException;
-import RateControl.Exceptions.InternalServerException;
 import RateControl.Exceptions.UnauthorizedException;
 import RateControl.Models.ApiKey.ApiKey;
 import RateControl.Models.Auth.Auth;
@@ -16,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Optional;
@@ -23,8 +22,8 @@ import java.util.UUID;
 
 @Service
 @Transactional
-public class APIKeyService {
-    private static final Logger log = LogManager.getLogger(APIKeyService.class);
+public class ApiKeyService {
+    private static final Logger log = LogManager.getLogger(ApiKeyService.class);
 
     private final ApiKeyRepository apiKeyRepository;
     private final OrgService orgService;
@@ -32,14 +31,14 @@ public class APIKeyService {
     private final SecurityService securityService;
 
     @Autowired
-    public APIKeyService(ApiKeyRepository apiKeyRepository, OrgService orgService, RaterManagementClient raterManagementClient, SecurityService securityService) {
+    public ApiKeyService(ApiKeyRepository apiKeyRepository, OrgService orgService, RaterManagementClient raterManagementClient, SecurityService securityService) {
         this.apiKeyRepository = apiKeyRepository;
         this.orgService = orgService;
         this.raterManagementClient = raterManagementClient;
         this.securityService = securityService;
     }
 
-    public Optional<ApiKey> createApiKey(Org org, UUID serviceId, Auth auth) throws UnauthorizedException, BadRequestException {
+    public Optional<ApiKey> createApiKey(Org org, UUID serviceId, Auth auth) throws UnauthorizedException, BadRequestException, NoSuchAlgorithmException {
         // Need to check Org + Service Still exists
         boolean orgServicePairExists = validateServiceId(org, serviceId, auth);
 
@@ -78,11 +77,10 @@ public class APIKeyService {
         return apiKeyRepository.getByApiKey(apiKey);
     }
 
-    private ApiKey generateApiKey() {
-        SecureRandom random = new SecureRandom();
-        byte[] keyBytes = new byte[32];
-        random.nextBytes(keyBytes);
-        return new ApiKey(Base64.getUrlEncoder().encodeToString(keyBytes));
+    private ApiKey generateApiKey() throws NoSuchAlgorithmException {
+        byte[] bytes = new byte[32];
+        SecureRandom.getInstanceStrong().nextBytes(bytes);
+        return new ApiKey(Base64.getUrlEncoder().encodeToString(bytes));
     }
 
     private boolean validateServiceId(Org org, UUID serviceId, Auth auth) throws BadRequestException {
