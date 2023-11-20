@@ -17,7 +17,9 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static RateControl.Config.RedisFormatter.getApiRequestsKey;
 import static RateControl.Config.RedisFormatter.getMinuteRequestsKey;
@@ -28,31 +30,51 @@ public class ApiProcessingService {
     private static final Logger log = LogManager.getLogger(ApiProcessingService.class);
 
     private final ApiProcessingRepository apiProcessingRepository;
+    private final ApiKeyService apiKeyService;
+    private final RaterManagementClient raterManagementClient;
 
     @Autowired
-    public ApiProcessingService(ApiProcessingRepository apiProcessingRepository) {
+    public ApiProcessingService(ApiProcessingRepository apiProcessingRepository, ApiKeyService apiKeyService, RaterManagementClient raterManagementClient) {
         this.apiProcessingRepository = apiProcessingRepository;
+        this.apiKeyService = apiKeyService;
+        this.raterManagementClient = raterManagementClient;
     }
 
     public void processRequest(ApiRequest apiRequest) {
-        final String redisKey = getApiRequestsKey(apiRequest.getUserId().toString(), apiRequest.getApiPath(), apiRequest.getApiKey().getApiKey());
+        final String redisKey = getApiRequestsKey(apiRequest.getUserId().toString(), apiRequest.getApiPath(), apiRequest.getApiKey());
 
         // Key should be in the format of: requests_userId:X_api:Y_apiKey:Z
         CompletableFuture.runAsync(() -> apiProcessingRepository.saveRequest(redisKey));
     }
 
     // withOffset used when we want to increment it by one for concurrent requests where the stored value is eventually correct
-    public RateLimitResponse getApiStatus(ApiRequest apiRequest, boolean withOffset) {
-        int currentLoad = getNumberOfRequestsLastMinute(apiRequest); // Number of requests in last 60 seconds
+    public RateLimitResponse getApiStatus(ApiRequest apiRequest, boolean withOffset, Auth auth) throws ExecutionException, InterruptedException {
+        // Get current aggregate
+        CompletableFuture<Integer> requestsAggregate = CompletableFuture.supplyAsync(() -> getNumberOfRequestsLastMinute(apiRequest)); // Number of requests in last 60 seconds
+
+        // Get Limit for API
+        CompletableFuture<Integer> apiLimit = CompletableFuture.supplyAsync(() -> {
+            try {
+                return getMaxLimitRuleForAPI(apiRequest, auth);
+            } catch (BadRequestException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        CompletableFuture.allOf(requestsAggregate, apiLimit).get();
+
+        int currentLoad = requestsAggregate.get();
+        int maxLoad = apiLimit.get();
+
         if (withOffset) {
             currentLoad++;
         }
 
-        return new RateLimitResponse(apiRequest.getApiPath(), false, currentLoad, 100);
+        return new RateLimitResponse(apiRequest.getApiPath(), currentLoad > maxLoad, currentLoad, maxLoad);
     }
 
     private int getNumberOfRequestsLastMinute(ApiRequest apiRequest) {
-        final String redisKey = getMinuteRequestsKey(apiRequest.getUserId().toString(), apiRequest.getApiPath(), apiRequest.getApiKey().getApiKey());
+        final String redisKey = getMinuteRequestsKey(apiRequest.getUserId().toString(), apiRequest.getApiPath(), apiRequest.getApiKey());
         int requestCount = 0;
 
         try {
@@ -62,5 +84,11 @@ public class ApiProcessingService {
         }
 
         return requestCount;
+    }
+
+    private int getMaxLimitRuleForAPI(ApiRequest apiRequest, Auth auth) throws BadRequestException {
+        log.info("Getting rule for api: ", apiRequest.getApiPath());
+        String serviceId = apiKeyService.getServiceIdForApiKey(apiRequest.getApiKey());
+        return raterManagementClient.getApiSearchRule(apiRequest, serviceId, auth.getToken());
     }
 }

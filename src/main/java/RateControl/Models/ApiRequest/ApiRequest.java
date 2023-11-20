@@ -2,6 +2,7 @@ package RateControl.Models.ApiRequest;
 
 import RateControl.Models.ApiKey.ApiKey;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -10,7 +11,7 @@ import java.util.UUID;
 
 public class ApiRequest {
     @NotNull
-    private ApiKey apiKey;
+    private String apiKey;
 
     @NotNull
     private String apiPath;
@@ -19,13 +20,13 @@ public class ApiRequest {
     private UUID userId;
 
     @JsonCreator
-    public ApiRequest(@Valid ApiKey apiKey, String apiPath, UUID userId) {
+    public ApiRequest(String apiKey, String apiPath, UUID userId) {
         this.apiKey = apiKey;
         this.apiPath = apiPath;
         this.userId = userId;
     }
 
-    public ApiKey getApiKey() {
+    public String getApiKey() {
         return apiKey;
     }
 
@@ -37,10 +38,15 @@ public class ApiRequest {
         return userId;
     }
 
+    @JsonIgnore
+    public boolean isTypeId() {
+        return true;
+    }
+
     @Override
     public String toString() {
         return "ApiRequest{" +
-                "apiKeyLength=" + apiKey.getApiKey().length() +
+                "apiKeyLength=" + apiKey.length() +
                 ", apiPath=" + apiPath +
                 ", userIdLength=" + userId.toString().length() +
                 '}';

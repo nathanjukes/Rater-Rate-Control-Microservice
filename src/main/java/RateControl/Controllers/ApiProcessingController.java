@@ -5,9 +5,11 @@ import RateControl.Exceptions.UnauthorizedException;
 import RateControl.Models.ApiKey.ApiKey;
 import RateControl.Models.ApiRequest.ApiRequest;
 import RateControl.Models.ApiRequest.RateLimitResponse;
+import RateControl.Models.Auth.Auth;
 import RateControl.Models.Org.Org;
 import RateControl.Security.SecurityService;
 import RateControl.Services.ApiProcessingService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import static RateControl.Security.SecurityService.throwIfNoAuth;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -40,26 +43,27 @@ public class ApiProcessingController {
     }
 
     @RequestMapping(value = "", method = POST)
-    public ResponseEntity<RateLimitResponse> processRequest(@RequestBody @Valid ApiRequest apiRequest) throws InternalServerException, UnauthorizedException {
+    public ResponseEntity<RateLimitResponse> processRequest(@RequestBody @Valid ApiRequest apiRequest, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, ExecutionException, InterruptedException {
         Optional<Org> org = securityService.getAuthedOrg();
+        Optional<Auth> auth = securityService.getAuthToken(servletRequest);
         throwIfNoAuth(org);
 
         log.info("Processing API Request: " + apiRequest);
 
         apiProcessingService.processRequest(apiRequest);
-        RateLimitResponse rateLimitResponse = apiProcessingService.getApiStatus(apiRequest, true);
+        RateLimitResponse rateLimitResponse = apiProcessingService.getApiStatus(apiRequest, true, auth.orElseThrow());
 
         return ResponseEntity.ok(rateLimitResponse);
     }
 
-    // Query API for it's current status for a given user
     @RequestMapping(value = "", method = GET)
-    public ResponseEntity<RateLimitResponse> getApiStatus(@RequestBody @Valid ApiRequest apiRequest) throws InternalServerException, UnauthorizedException {
+    public ResponseEntity<RateLimitResponse> getApiStatus(@RequestBody @Valid ApiRequest apiRequest, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, ExecutionException, InterruptedException {
         Optional<Org> org = securityService.getAuthedOrg();
+        Optional<Auth> auth = securityService.getAuthToken(servletRequest);
         throwIfNoAuth(org);
 
         log.info("API Status Requested for: " + apiRequest.getApiPath());
 
-        return ResponseEntity.ok(apiProcessingService.getApiStatus(apiRequest, false));
+        return ResponseEntity.ok(apiProcessingService.getApiStatus(apiRequest, false, auth.orElseThrow()));
     }
 }
