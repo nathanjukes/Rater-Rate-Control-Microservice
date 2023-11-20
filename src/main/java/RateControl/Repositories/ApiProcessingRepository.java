@@ -1,5 +1,6 @@
 package RateControl.Repositories;
 
+import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -35,11 +36,16 @@ public class ApiProcessingRepository {
 
     public void saveMinuteRequestsValue(String key, int value) {
         // key e.g. minute_requests_userId:X_api:Y_apiKey:Z
-        redisConnection.sync().set(key, String.valueOf(value));
+        // TTL of 30 seconds, once all requests from a user are out of date, this runs out, otherwise it keeps refreshing every second back to 30 (See aggregateRequestData())
+        redisConnection.sync().set(key, String.valueOf(value), SetArgs.Builder.ex(30));
     }
 
     public int getMinuteRequests(String key) {
         // key e.g. minute_requests_userId:X_api:Y_apiKey:Z
         return Integer.parseInt(redisConnection.sync().get(key));
+    }
+
+    public void removeRequests(String key, Double upperBound) {
+        redisConnection.sync().zremrangebyscore(key, 0, upperBound);
     }
 }

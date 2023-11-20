@@ -32,18 +32,19 @@ public class RequestJanitor {
         this.apiProcessingRepository = apiProcessingRepository;
     }
 
-
-    // Remove sorted set entries that are out of date e.g.
-    // ZREMRANGEBYSCORE requests_user:1_api:post:/users -inf <TIMESTAMP - 1 Day>
-
-    // Aggregate request values
-    // ZCOUNT requests_user:1_api:post:/users 1000 12000
-    // ZCOUNT requests_userId:4b7dbb41-4156-4a81-af4d-6052080104c7_api:GET:/users -inf +inf
-    // Maybe aggregate once and increment after every request ?
-
     // Handle api rule stored in cache
     // e.g. if /users has not been hit for 24 hours, the api rule for /users should be removed from cache
     // otherwise should be refreshed etc
+
+    @Scheduled(fixedRate = 3600000) // every minute
+    public void removeOldRequests() {
+        List<String> requestSets = apiProcessingRepository.getAllApiRequestSets();
+        final Double timestampDayAgo = Double.valueOf((Instant.now().minusSeconds(86400)).getEpochSecond());
+
+        for (var i : requestSets) {
+            apiProcessingRepository.removeRequests(i, timestampDayAgo);
+        }
+    }
 
     @Scheduled(fixedRate = 1000) // every 1 second
     public void aggregateRequestData() {
