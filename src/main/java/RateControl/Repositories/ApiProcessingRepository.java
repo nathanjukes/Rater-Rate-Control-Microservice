@@ -1,5 +1,9 @@
 package RateControl.Repositories;
 
+import RateControl.Clients.RaterManagementClient;
+import RateControl.Exceptions.BadRequestException;
+import RateControl.Models.ApiRequest.ApiRequest;
+import RateControl.Models.Auth.Auth;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +17,12 @@ import java.util.concurrent.CompletableFuture;
 @Repository
 public class ApiProcessingRepository {
     private final StatefulRedisConnection<String, String> redisConnection;
-
+    private final RaterManagementClient raterManagementClient;
 
     @Autowired
-    public ApiProcessingRepository(StatefulRedisConnection<String, String> redisConnection) {
+    public ApiProcessingRepository(StatefulRedisConnection<String, String> redisConnection, RaterManagementClient raterManagementClient) {
         this.redisConnection = redisConnection;
+        this.raterManagementClient = raterManagementClient;
     }
 
     public void saveRequest(String key) {
@@ -47,5 +52,9 @@ public class ApiProcessingRepository {
 
     public void removeRequests(String key, Double upperBound) {
         redisConnection.sync().zremrangebyscore(key, 0, upperBound);
+    }
+
+    public int getApiRule(ApiRequest apiRequest, String serviceId, Auth auth) throws BadRequestException {
+        return raterManagementClient.getApiSearchRule(apiRequest, serviceId, auth.getToken());
     }
 }

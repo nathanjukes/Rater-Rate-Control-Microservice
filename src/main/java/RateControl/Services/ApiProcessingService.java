@@ -31,13 +31,11 @@ public class ApiProcessingService {
 
     private final ApiProcessingRepository apiProcessingRepository;
     private final ApiKeyService apiKeyService;
-    private final RaterManagementClient raterManagementClient;
 
     @Autowired
-    public ApiProcessingService(ApiProcessingRepository apiProcessingRepository, ApiKeyService apiKeyService, RaterManagementClient raterManagementClient) {
+    public ApiProcessingService(ApiProcessingRepository apiProcessingRepository, ApiKeyService apiKeyService) {
         this.apiProcessingRepository = apiProcessingRepository;
         this.apiKeyService = apiKeyService;
-        this.raterManagementClient = raterManagementClient;
     }
 
     public void processRequest(ApiRequest apiRequest) {
@@ -89,6 +87,6 @@ public class ApiProcessingService {
     private int getMaxLimitRuleForAPI(ApiRequest apiRequest, Auth auth) throws BadRequestException {
         log.info("Getting rule for api: {}", apiRequest.getApiPath());
         String serviceId = apiKeyService.getServiceIdForApiKey(apiRequest.getApiKey());
-        return raterManagementClient.getApiSearchRule(apiRequest, serviceId, auth.getToken());
+        return apiProcessingRepository.getApiRule(apiRequest, serviceId, auth);
     }
 }
