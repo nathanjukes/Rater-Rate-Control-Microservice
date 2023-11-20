@@ -87,7 +87,7 @@ public class ApiProcessingService {
     }
 
     private int getMaxLimitRuleForAPI(ApiRequest apiRequest, Auth auth) throws BadRequestException {
-        log.info("Getting rule for api: ", apiRequest.getApiPath());
+        log.info("Getting rule for api: {}", apiRequest.getApiPath());
         String serviceId = apiKeyService.getServiceIdForApiKey(apiRequest.getApiKey());
         return raterManagementClient.getApiSearchRule(apiRequest, serviceId, auth.getToken());
     }
