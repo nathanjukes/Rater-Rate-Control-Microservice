@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static RateControl.Security.SecurityService.throwIfNoAuth;
@@ -50,10 +51,16 @@ public class ApiProcessingController {
 
         log.info("Processing API Request: " + apiRequest);
 
-        apiProcessingService.processRequest(apiRequest);
-        RateLimitResponse rateLimitResponse = apiProcessingService.getApiStatus(apiRequest, true, auth.orElseThrow());
+        CompletableFuture.runAsync(() -> apiProcessingService.processRequest(apiRequest));
+        CompletableFuture<RateLimitResponse> rateLimitResponse = CompletableFuture.supplyAsync(() -> {
+            try {
+                return apiProcessingService.getApiStatus(apiRequest, true, auth.orElseThrow());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
 
-        return ResponseEntity.ok(rateLimitResponse);
+        return ResponseEntity.ok(rateLimitResponse.get());
     }
 
     @RequestMapping(value = "", method = GET)
