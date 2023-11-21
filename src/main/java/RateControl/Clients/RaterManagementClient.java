@@ -1,6 +1,8 @@
 package RateControl.Clients;
 
 import RateControl.Exceptions.BadRequestException;
+import RateControl.Models.ApiLimit.ApiLimitResponse;
+import RateControl.Models.ApiLimit.CustomRuleType;
 import RateControl.Models.ApiRequest.ApiRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -8,6 +10,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -48,7 +51,7 @@ public class RaterManagementClient extends Client {
         return orgId.equals(orgIdReturned);
     }
 
-    public int getApiSearchRule(ApiRequest apiRequest, String serviceId, String auth) throws BadRequestException {
+    public Optional<ApiLimitResponse> getApiSearchRule(ApiRequest apiRequest, String serviceId, String auth) throws BadRequestException {
         JSONObject requestBody = new JSONObject();
         requestBody.put("data", apiRequest.getUserId());
         requestBody.put("apiPath", apiRequest.getApiPath());
@@ -98,16 +101,18 @@ public class RaterManagementClient extends Client {
         return (int) jsonObject.get("useLimit");
     }
 
-    private int getApiSearchRule(JSONObject requestBody, String auth) throws BadRequestException {
+    private Optional<ApiLimitResponse> getApiSearchRule(JSONObject requestBody, String auth) throws BadRequestException {
         final String url = getBaseUrl() + "/" + APIS_URI + "/" + RULES_SEARCH_URI;
         JSONObject jsonObject;
 
         jsonObject = getPostResource(url, auth, requestBody);
         if (jsonObject == null || jsonObject.isEmpty()) {
-            return 0;
+            return Optional.empty();
         }
 
-        return (int) jsonObject.get("useLimit");
+        int useLimit = (int) jsonObject.get("useLimit");
+        CustomRuleType customRuleType = CustomRuleType.valueOf(String.valueOf(jsonObject.get("customRuleType")));
+        return Optional.of(new ApiLimitResponse(useLimit, customRuleType));
     }
 
     private String getBaseUrl() {

@@ -1,7 +1,9 @@
 package RateControl.Repositories;
 
 import RateControl.Clients.RaterManagementClient;
+import RateControl.Config.RedisFormatter;
 import RateControl.Exceptions.BadRequestException;
+import RateControl.Models.ApiLimit.ApiLimitResponse;
 import RateControl.Models.ApiRequest.ApiRequest;
 import RateControl.Models.Auth.Auth;
 import io.lettuce.core.SetArgs;
@@ -11,8 +13,11 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+
+import static RateControl.Config.RedisFormatter.REQUESTS_KEYS_QUERY;
 
 @Repository
 public class ApiProcessingRepository {
@@ -36,7 +41,7 @@ public class ApiProcessingRepository {
 
     public List<String> getAllApiRequestSets() {
         // keys requests_userId:*:*:*
-        return redisConnection.sync().keys("requests_userId:*:*:*");
+        return redisConnection.sync().keys(REQUESTS_KEYS_QUERY);
     }
 
     public void saveMinuteRequestsValue(String key, int value) {
@@ -54,7 +59,35 @@ public class ApiProcessingRepository {
         redisConnection.sync().zremrangebyscore(key, 0, upperBound);
     }
 
-    public int getApiRule(ApiRequest apiRequest, String serviceId, Auth auth) throws BadRequestException {
+    public Optional<ApiLimitResponse> getApiRule(ApiRequest apiRequest, String serviceId, Auth auth) throws BadRequestException {
         return raterManagementClient.getApiSearchRule(apiRequest, serviceId, auth.getToken());
+    }
+
+    public int getCustomApiRuleFromCache(ApiRequest apiRequest) {
+        String key = RedisFormatter.getCustomLimitKey(apiRequest.getUserId().toString(), apiRequest.getApiPath(), apiRequest.getApiKey());
+        try {
+            return Integer.parseInt(redisConnection.sync().get(key));
+        } catch (NumberFormatException ex) {
+            return -1;
+        }
+    }
+
+    public int getBaseApiRuleFromCache(String apiPath, String apiKey) {
+        String key = RedisFormatter.getBaseLimitKey(apiPath, apiKey);
+        try {
+            return Integer.parseInt(redisConnection.sync().get(key));
+        } catch (NumberFormatException ex) {
+            return -1;
+        }
+    }
+
+    public void saveCustomApiRuleToCache(ApiRequest apiRequest, int limit) {
+        String key = RedisFormatter.getCustomLimitKey(apiRequest.getUserId().toString(), apiRequest.getApiPath(), apiRequest.getApiKey());
+        redisConnection.sync().set(key, String.valueOf(limit), SetArgs.Builder.ex(216000)); // 1 Hour
+    }
+
+    public void saveBaseApiRuleToCache(String apiPath, String apiKey, int limit) {
+        String key = RedisFormatter.getBaseLimitKey(apiPath, apiKey);
+        redisConnection.sync().set(key, String.valueOf(limit), SetArgs.Builder.ex(36000)); // 10 Minutes (Should be refreshing more often)
     }
 }
