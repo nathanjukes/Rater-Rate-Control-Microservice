@@ -54,29 +54,17 @@ public class JwtUtil implements Serializable {
 
     public boolean validateJwtToken(String token) {
         try {
-            parseTokenClaims(token);
+            Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(token);
             return true;
-        } catch (MalformedJwtException e) {
-           // logger.error("Invalid JWT token: {}", e.getMessage());
-        } catch (ExpiredJwtException e) {
-           // logger.error("JWT token is expired: {}", e.getMessage());
-        } catch (UnsupportedJwtException e) {
-           // logger.error("JWT token is unsupported: {}", e.getMessage());
-        } catch (IllegalArgumentException e) {
-           // logger.error("JWT claims string is empty: {}", e.getMessage());
+        } catch (Exception e) {
+            throw e;
         }
-
-        return false;
     }
 
     private Key key() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
     }
-
-    private void parseTokenClaims(String token) {
-        getParser().parseClaimsJws(token);
-    }
-
+    
     private JwtParser getParser() {
         return Jwts.parserBuilder().setSigningKey(key()).build();
     }
