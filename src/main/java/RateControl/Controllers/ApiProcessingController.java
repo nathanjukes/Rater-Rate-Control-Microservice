@@ -63,7 +63,7 @@ public class ApiProcessingController {
         return ResponseEntity.ok(rateLimitResponse.get());
     }
 
-    @RequestMapping(value = "", method = GET)
+    @RequestMapping(value = "/status", method = POST)
     public ResponseEntity<RateLimitResponse> getApiStatus(@RequestBody @Valid ApiRequest apiRequest, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, ExecutionException, InterruptedException {
         Optional<Org> org = securityService.getAuthedOrg();
         Optional<Auth> auth = securityService.getAuthToken(servletRequest);
