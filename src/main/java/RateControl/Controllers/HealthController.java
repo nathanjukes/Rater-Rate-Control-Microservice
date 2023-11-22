@@ -1,5 +1,6 @@
 package RateControl.Controllers;
 
+import RateControl.Models.Health.HealthObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,7 +11,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @RequestMapping("/health")
 public class HealthController {
     @RequestMapping(method = GET)
-    public ResponseEntity<String> getHealth() {
-        return ResponseEntity.ok("healthy");
+    public ResponseEntity<HealthObject> getHealth() {
+        return ResponseEntity.ok(new HealthObject("healthy"));
     }
 }
