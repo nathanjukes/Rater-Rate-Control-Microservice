@@ -16,10 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
@@ -50,12 +47,19 @@ public class ApiKeyController {
         return ResponseEntity.ok(apiKeyService.getServiceIdForApiKey(apiKey));
     }
 
+    @CrossOrigin
+    @RequestMapping(value = "/keys/{serviceId}", method = GET)
+    public ResponseEntity<String> getApiKeyForService(@PathVariable String serviceId) {
+        return ResponseEntity.ok(apiKeyService.getApiKeyForServiceId(serviceId));
+    }
+
     @RequestMapping(value = "/{apiKey}/{serviceId}", method = POST)
     public ResponseEntity<String> setApiKeyValue(@PathVariable String apiKey, @PathVariable String serviceId) {
         apiKeyService.saveApiKey(apiKey, UUID.fromString(serviceId));
         return ResponseEntity.ok("done");
     }
 
+    @CrossOrigin
     @RequestMapping(value = "", method = POST)
     public ResponseEntity<Optional<ApiKey>> createApiKey(@RequestBody @Valid CreateApiKeyRequest apiKeyRequest, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, BadRequestException, NoSuchAlgorithmException {
         Optional<Auth> auth = securityService.getAuthToken(servletRequest);

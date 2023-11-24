@@ -40,4 +40,8 @@ public class ApiKeyRepository {
     public String getByApiKey(String apiKey) {
         return redisConnection.sync().hget(APIKEY_TO_SERVICEID_KEY, apiKey);
     }
+
+    public String getByServiceId(String serviceId) {
+        return redisConnection.sync().hget(SERVICEID_TO_APIKEY_KEY, serviceId);
+    }
 }

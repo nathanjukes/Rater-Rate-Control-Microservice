@@ -77,6 +77,10 @@ public class ApiKeyService {
         return apiKeyRepository.getByApiKey(apiKey);
     }
 
+    public String getApiKeyForServiceId(String serviceId) {
+        return apiKeyRepository.getByServiceId(serviceId);
+    }
+
     private ApiKey generateApiKey() throws NoSuchAlgorithmException {
         byte[] bytes = new byte[32];
         SecureRandom.getInstanceStrong().nextBytes(bytes);
