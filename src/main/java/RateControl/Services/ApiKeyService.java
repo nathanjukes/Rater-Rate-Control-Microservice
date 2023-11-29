@@ -26,14 +26,12 @@ public class ApiKeyService {
     private static final Logger log = LogManager.getLogger(ApiKeyService.class);
 
     private final ApiKeyRepository apiKeyRepository;
-    private final OrgService orgService;
     private final RaterManagementClient raterManagementClient;
     private final SecurityService securityService;
 
     @Autowired
-    public ApiKeyService(ApiKeyRepository apiKeyRepository, OrgService orgService, RaterManagementClient raterManagementClient, SecurityService securityService) {
+    public ApiKeyService(ApiKeyRepository apiKeyRepository, RaterManagementClient raterManagementClient, SecurityService securityService) {
         this.apiKeyRepository = apiKeyRepository;
-        this.orgService = orgService;
         this.raterManagementClient = raterManagementClient;
         this.securityService = securityService;
     }

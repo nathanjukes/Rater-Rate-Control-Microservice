@@ -38,8 +38,4 @@ public class Org {
     public void setName(String name) {
         this.name = name;
     }
-
-    public static Org from(OrgCreateRequest orgCreateRequest) {
-        return new Org(orgCreateRequest.getName());
-    }
 }

@@ -1,6 +1,5 @@
 package RateControl.Controllers;
 
-import RateControl.Clients.RaterManagementClient;
 import RateControl.Exceptions.BadRequestException;
 import RateControl.Exceptions.InternalServerException;
 import RateControl.Exceptions.UnauthorizedException;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -33,13 +31,11 @@ public class ApiKeyController {
 
     private final ApiKeyService apiKeyService;
     private final SecurityService securityService;
-    private final RaterManagementClient r;
 
     @Autowired
-    public ApiKeyController(ApiKeyService apiKeyService, SecurityService securityService, RaterManagementClient raterManagementClient) {
+    public ApiKeyController(ApiKeyService apiKeyService, SecurityService securityService) {
         this.apiKeyService = apiKeyService;
         this.securityService = securityService;
-        this.r = raterManagementClient;
     }
 
     @RequestMapping(value = "/{apiKey}", method = GET)
@@ -53,12 +49,6 @@ public class ApiKeyController {
         return ResponseEntity.ok(apiKeyService.getApiKeyForServiceId(serviceId));
     }
 
-    @RequestMapping(value = "/{apiKey}/{serviceId}", method = POST)
-    public ResponseEntity<String> setApiKeyValue(@PathVariable String apiKey, @PathVariable String serviceId) {
-        apiKeyService.saveApiKey(apiKey, UUID.fromString(serviceId));
-        return ResponseEntity.ok("done");
-    }
-
     @CrossOrigin
     @RequestMapping(value = "", method = POST)
     public ResponseEntity<Optional<ApiKey>> createApiKey(@RequestBody @Valid CreateApiKeyRequest apiKeyRequest, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, BadRequestException, NoSuchAlgorithmException {
@@ -70,6 +60,8 @@ public class ApiKeyController {
             throw new BadRequestException();
         }
 
+        log.info("Generating API Key for orgId: {} serviceId: {}", org.map(Org::getId).orElseThrow(), apiKeyRequest.getServiceId());
+
         // Generates ApiKey for Org/ServiceId Pair - validates serviceId exists and belongs to Org given
         Optional<ApiKey> apiKey = apiKeyService.createApiKey(
                 org.orElseThrow(),
@@ -78,17 +70,5 @@ public class ApiKeyController {
         );
 
         return ResponseEntity.ok(apiKey);
-    }
-
-    @RequestMapping(value = "/test", method = GET)
-    public ResponseEntity<Optional<Auth>> getTest(HttpServletRequest request) {
-        return ResponseEntity.ok(securityService.getAuthToken(request));
-    }
-
-    @RequestMapping(value = "/test/{serviceId}", method = GET)
-    public ResponseEntity<Boolean> testServiceIdExists(@PathVariable UUID serviceId, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, BadRequestException {
-        Optional<Auth> auth = securityService.getAuthToken(servletRequest);
-
-        return ResponseEntity.ok(r.serviceExists(serviceId, securityService.getAuthedOrg().get().getId(), auth.get().getToken()));
     }
 }

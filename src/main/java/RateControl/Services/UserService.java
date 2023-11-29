@@ -20,10 +20,6 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public Optional<User> getUser(UUID userId) {
-        return userRepository.findById(userId);
-    }
-
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
