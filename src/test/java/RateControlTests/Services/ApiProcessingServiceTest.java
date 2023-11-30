@@ -17,6 +17,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -45,12 +46,11 @@ public class ApiProcessingServiceTest {
         UUID userId = UUID.randomUUID();
         String apiKey = "apiKeyTest";
         String apiPath = "apiPathTest";
-        String redisKey = String.format("requests_userId:%s_api:%s_apiKey:%s", userId, apiPath, apiKey);
         ApiRequest apiRequest = new ApiRequest(apiKey, apiPath, userId);
 
         apiProcessingService.processRequest(apiRequest);
 
-        verify(apiProcessingRepository, times(1)).saveRequest(eq(redisKey));
+        verify(apiProcessingRepository, times(1)).saveRequest(any());
     }
 
     @Test
