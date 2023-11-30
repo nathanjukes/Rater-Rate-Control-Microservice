@@ -28,8 +28,6 @@ public class ApiProcessingControllerTest {
     @InjectMocks
     private ApiProcessingController apiProcessingController;
     @Mock
-    private ApiKeyService apiKeyService;
-    @Mock
     private ApiProcessingService apiProcessingService;
     @Mock
     private SecurityService securityService;
