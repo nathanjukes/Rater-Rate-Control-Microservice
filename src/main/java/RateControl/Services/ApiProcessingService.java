@@ -51,9 +51,8 @@ public class ApiProcessingService {
 
     // withOffset used when we want to increment it by one for concurrent requests where the stored value is eventually correct
     public RateLimitResponse getApiStatus(ApiRequest apiRequest, boolean withOffset, Auth auth) throws ExecutionException, InterruptedException {
-        // Get current aggregate
         CompletableFuture<Integer> requestsAggregate = CompletableFuture.supplyAsync(() -> getNumberOfRequestsLastMinute(apiRequest));
-        // Get Limit for API
+
         CompletableFuture<Integer> apiLimit = CompletableFuture.supplyAsync(() -> {
             try {
                 return getMaxLimitRuleForAPI(apiRequest, auth);
@@ -62,7 +61,7 @@ public class ApiProcessingService {
             }
         });
 
-        CompletableFuture.allOf(requestsAggregate, apiLimit).get(); // Necessary?
+        CompletableFuture.allOf(requestsAggregate, apiLimit).get();
 
         int currentLoad = requestsAggregate.get();
         int maxLoad = apiLimit.get();
