@@ -64,13 +64,6 @@ public class ApiKeyService {
         apiKeyRepository.save(apiKey, serviceId);
     }
 
-    public void saveApiKey(String apiKey, UUID serviceId) {
-        // if api key already exists for org, serviceId pair then throw bad request
-
-        // save api key
-        apiKeyRepository.save(apiKey, serviceId);
-    }
-
     public String getServiceIdForApiKey(String apiKey) {
         return apiKeyRepository.getByApiKey(apiKey);
     }
