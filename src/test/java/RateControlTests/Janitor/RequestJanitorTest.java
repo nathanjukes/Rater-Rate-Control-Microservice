@@ -3,8 +3,7 @@ package RateControlTests.Janitor;
 import RateControl.Janitor.RequestJanitor;
 import RateControl.Repositories.ApiProcessingRepository;
 import org.junit.Before;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -19,16 +18,12 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class RequestJanitorTest {
     @InjectMocks
     private RequestJanitor requestJanitor;
     @Mock
     private ApiProcessingRepository apiProcessingRepository;
-
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.initMocks(this);
-    }
 
     @Test
     public void testRemoveOldRequests() {
@@ -80,7 +75,6 @@ public class RequestJanitorTest {
         List<String> requestSets = Collections.emptyList();
 
         when(apiProcessingRepository.getAllApiRequestSets()).thenReturn(requestSets);
-        when(apiProcessingRepository.getNumberOfRequests(any(), any(), any())).thenReturn(150);
 
         requestJanitor.aggregateRequestData();
 

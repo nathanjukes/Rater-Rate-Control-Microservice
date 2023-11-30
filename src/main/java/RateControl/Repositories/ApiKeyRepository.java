@@ -15,7 +15,6 @@ public class ApiKeyRepository {
     private final String APIKEY_TO_SERVICEID_KEY = "apikey_to_serviceid";
     private final String SERVICEID_TO_APIKEY_KEY = "serviceid_to_apikey";
 
-
     @Autowired
     public ApiKeyRepository(StatefulRedisConnection<String, String> redisConnection) {
         this.redisConnection = redisConnection;

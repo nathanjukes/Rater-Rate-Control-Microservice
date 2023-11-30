@@ -2,9 +2,6 @@ package RateControlTests.Config;
 
 import RateControl.Config.RedisFormatter;
 import org.junit.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -14,7 +11,6 @@ import java.util.stream.Stream;
 import static org.springframework.test.util.AssertionErrors.assertEquals;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
-
 public class RedisFormatterTest {
 
     @Test
