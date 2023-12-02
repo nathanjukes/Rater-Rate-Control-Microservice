@@ -3,7 +3,7 @@ package RateControl.Config;
 import java.time.Instant;
 
 public class RedisFormatter {
-    public final static String REQUESTS_KEYS_QUERY = "requests_userId:*:*:*";
+    public final static String REQUESTS_KEYS_QUERY = "requests_dataIn:*:*:*";
 
     public final static String getApiRequestsKey(String data, String apiPath, String apiKey) {
         return String.format("requests_dataIn:%s_api:%s_apiKey:%s", data, apiPath, apiKey); // Const this ?
