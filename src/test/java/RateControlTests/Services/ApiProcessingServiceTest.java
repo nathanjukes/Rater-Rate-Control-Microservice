@@ -60,7 +60,7 @@ public class ApiProcessingServiceTest {
         UUID userId = UUID.randomUUID();
         String apiKey = "apiKeyTest";
         String apiPath = "apiPathTest";
-        String redisKey = String.format("minute_requests_userId:%s_api:%s_apiKey:%s", userId, apiPath, apiKey);
+        String redisKey = String.format("minute_requests_dataIn:%s_api:%s_apiKey:%s", userId, apiPath, apiKey);
         ApiRequest apiRequest = new ApiRequest(apiKey, apiPath, userId);
 
         apiProcessingService.getApiStatus(apiRequest, false, auth);

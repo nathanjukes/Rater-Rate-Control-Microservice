@@ -15,21 +15,21 @@ public class RedisFormatterTest {
 
     @Test
     public void testGetApiRequestsKey() {
-        String key = "requests_userId:test_api:/api_apiKey:testApi";
+        String key = "requests_dataIn:test_api:/api_apiKey:testApi";
         String out = RedisFormatter.getApiRequestsKey("test", "/api", "testApi");
         assertEquals("", key, out);
     }
 
     @Test
     public void testGetMinuteRequestsKey() {
-        String key = "minute_requests_userId:test_api:/api_apiKey:testApi";
+        String key = "minute_requests_dataIn:test_api:/api_apiKey:testApi";
         String out = RedisFormatter.getMinuteRequestsKey("test", "/api", "testApi");
         assertEquals("", key, out);
     }
 
     @Test
     public void testGetMinuteKeyFromRequestsKey() {
-        String key = "minute_requests_userId:test_api:/api_apiKey:testApi";
+        String key = "minute_requests_dataIn:test_api:/api_apiKey:testApi";
         String out = RedisFormatter.getMinuteRequestsKey("test", "/api", "testApi");
         assertEquals("", key, out);
     }
@@ -43,7 +43,7 @@ public class RedisFormatterTest {
 
     @Test
     public void testGetCustomLimitKey() {
-        String key = "limit_requests_userId:test_api:/api_apiKey:testApi";
+        String key = "limit_requests_dataIn:test_api:/api_apiKey:testApi";
         String out = RedisFormatter.getCustomLimitKey("test", "/api", "testApi");
         assertEquals("", key, out);
     }
