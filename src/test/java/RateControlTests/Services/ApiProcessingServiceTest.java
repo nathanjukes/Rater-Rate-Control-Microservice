@@ -19,8 +19,7 @@ import java.util.concurrent.ExecutionException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ApiProcessingServiceTest {
@@ -42,15 +41,18 @@ public class ApiProcessingServiceTest {
     }
 
     @Test
-    public void testProcessRequest() {
+    public void testProcessRequest() throws InterruptedException {
         UUID userId = UUID.randomUUID();
         String apiKey = "apiKeyTest";
         String apiPath = "apiPathTest";
         ApiRequest apiRequest = new ApiRequest(apiKey, apiPath, userId);
 
-       // apiProcessingService.processRequest(apiRequest);
+        doNothing().when(apiProcessingRepository).saveRequest(any());
 
-       // verify(apiProcessingRepository, times(1)).saveRequest(any()); Broken
+        apiProcessingService.processRequest(apiRequest);
+
+        Thread.sleep(100);
+        verify(apiProcessingRepository, times(1)).saveRequest(any());
     }
 
     @Test
