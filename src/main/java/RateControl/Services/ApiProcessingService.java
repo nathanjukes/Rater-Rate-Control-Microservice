@@ -1,19 +1,14 @@
 package RateControl.Services;
 
-import RateControl.Clients.RaterManagementClient;
 import RateControl.Exceptions.BadRequestException;
 import RateControl.Exceptions.InternalServerException;
-import RateControl.Exceptions.UnauthorizedException;
-import RateControl.Models.ApiKey.ApiKey;
 import RateControl.Models.ApiLimit.ApiLimitResponse;
 import RateControl.Models.ApiLimit.CustomRuleType;
 import RateControl.Models.ApiRequest.ApiRequest;
 import RateControl.Models.ApiRequest.RateLimitResponse;
 import RateControl.Models.Auth.Auth;
-import RateControl.Models.Org.Org;
-import RateControl.Repositories.ApiKeyRepository;
 import RateControl.Repositories.ApiProcessingRepository;
-import RateControl.Security.SecurityService;
+import io.jsonwebtoken.lang.Strings;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -90,6 +84,11 @@ public class ApiProcessingService {
         log.info("Getting rule for api: {}", apiRequest.getApiPath());
 
         String serviceId = apiKeyService.getServiceIdForApiKey(apiRequest.getApiKey()); // Move to getRuleAndSave?
+
+        if (serviceId == null || !Strings.hasText(serviceId)) {
+            log.error("Service id not found for api key: {}", apiRequest.getApiKey());
+            throw new BadRequestException("Service id not found");
+        }
 
         return getRule(apiRequest, serviceId, auth);
     }

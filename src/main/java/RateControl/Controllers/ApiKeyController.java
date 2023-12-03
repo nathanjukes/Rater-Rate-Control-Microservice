@@ -39,7 +39,7 @@ public class ApiKeyController {
     }
 
     @RequestMapping(value = "/{apiKey}", method = GET)
-    public ResponseEntity<String> getApiKeyValue(@PathVariable String apiKey) {
+    public ResponseEntity<String> getApiKeyValue(@PathVariable String apiKey) throws BadRequestException {
         return ResponseEntity.ok(apiKeyService.getServiceIdForApiKey(apiKey));
     }
 

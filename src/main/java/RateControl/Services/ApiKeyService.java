@@ -4,9 +4,11 @@ import RateControl.Clients.RaterManagementClient;
 import RateControl.Exceptions.BadRequestException;
 import RateControl.Exceptions.UnauthorizedException;
 import RateControl.Models.ApiKey.ApiKey;
+import RateControl.Models.ApiKey.ApiKeyEntity;
 import RateControl.Models.Auth.Auth;
 import RateControl.Models.Org.Org;
-import RateControl.Repositories.ApiKeyRepository;
+import RateControl.Repositories.RedisApiKeyRepository;
+import RateControl.Repositories.PostgresApiKeyRepository;
 import RateControl.Security.SecurityService;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
@@ -25,13 +27,15 @@ import java.util.UUID;
 public class ApiKeyService {
     private static final Logger log = LogManager.getLogger(ApiKeyService.class);
 
-    private final ApiKeyRepository apiKeyRepository;
+    private final RedisApiKeyRepository redisApiKeyRepository;
+    private final PostgresApiKeyRepository postgresApiKeyRepository;
     private final RaterManagementClient raterManagementClient;
     private final SecurityService securityService;
 
     @Autowired
-    public ApiKeyService(ApiKeyRepository apiKeyRepository, RaterManagementClient raterManagementClient, SecurityService securityService) {
-        this.apiKeyRepository = apiKeyRepository;
+    public ApiKeyService(RedisApiKeyRepository redisApiKeyRepository, PostgresApiKeyRepository postgresApiKeyRepository, RaterManagementClient raterManagementClient, SecurityService securityService) {
+        this.redisApiKeyRepository = redisApiKeyRepository;
+        this.postgresApiKeyRepository = postgresApiKeyRepository;
         this.raterManagementClient = raterManagementClient;
         this.securityService = securityService;
     }
@@ -55,21 +59,33 @@ public class ApiKeyService {
 
     private void saveApiKey(ApiKey apiKey, UUID serviceId) throws BadRequestException {
         // Validate that api key does not already exist for serviceId
-        if (apiKeyRepository.apiKeyExistsForServiceId(serviceId.toString())) {
+        if (postgresApiKeyRepository.getByServiceId(serviceId).isPresent()) {
             log.info("API Key already exists for serviceId: {}", serviceId);
             throw new BadRequestException();
         }
 
         // save APIKey/ServiceId pair
-        apiKeyRepository.save(apiKey, serviceId);
+        postgresApiKeyRepository.save(new ApiKeyEntity(apiKey, serviceId));
+        redisApiKeyRepository.save(apiKey, serviceId);
     }
 
-    public String getServiceIdForApiKey(String apiKey) {
-        return apiKeyRepository.getByApiKey(apiKey);
+    public String getServiceIdForApiKey(String apiKey) throws BadRequestException {
+        String serviceId = redisApiKeyRepository.getByApiKey(apiKey);
+        if (serviceId != null) {
+            return serviceId;
+        }
+
+        serviceId = postgresApiKeyRepository.getByApiKey(apiKey)
+                .map(ApiKeyEntity::getServiceId)
+                .map(s -> s.toString())
+                .orElseThrow(BadRequestException::new);
+        redisApiKeyRepository.save(apiKey, serviceId);
+
+        return serviceId;
     }
 
     public String getApiKeyForServiceId(String serviceId) {
-        return apiKeyRepository.getByServiceId(serviceId);
+        return redisApiKeyRepository.getByServiceId(serviceId);
     }
 
     private ApiKey generateApiKey() throws NoSuchAlgorithmException {

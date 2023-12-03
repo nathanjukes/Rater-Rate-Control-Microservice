@@ -52,15 +52,9 @@ public class ApiProcessingController {
         log.info("Processing API Request: " + apiRequest);
 
         CompletableFuture.runAsync(() -> apiProcessingService.processRequest(apiRequest));
-        CompletableFuture<RateLimitResponse> rateLimitResponse = CompletableFuture.supplyAsync(() -> {
-            try {
-                return apiProcessingService.getApiStatus(apiRequest, true, auth.orElseThrow());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+        RateLimitResponse rateLimitResponse = getApiStatus(apiRequest, true, auth.orElseThrow());
 
-        return ResponseEntity.ok(rateLimitResponse.get());
+        return ResponseEntity.ok(rateLimitResponse);
     }
 
     @RequestMapping(value = "/status", method = POST)
@@ -71,6 +65,18 @@ public class ApiProcessingController {
 
         log.info("API Status Requested for: " + apiRequest.getApiPath());
 
-        return ResponseEntity.ok(apiProcessingService.getApiStatus(apiRequest, false, auth.orElseThrow()));
+        return ResponseEntity.ok(getApiStatus(apiRequest, false, auth.orElseThrow()));
+    }
+
+    private RateLimitResponse getApiStatus(ApiRequest apiRequest, boolean withOffset, Auth auth) throws ExecutionException, InterruptedException {
+        CompletableFuture<RateLimitResponse> rateLimitResponse = CompletableFuture.supplyAsync(() -> {
+            try {
+                return apiProcessingService.getApiStatus(apiRequest, withOffset, auth);
+            } catch (Exception e) {
+                log.info("Could not get api status for: ", apiRequest.toString());
+                throw new RuntimeException(e);
+            }
+        });
+        return rateLimitResponse.get();
     }
 }

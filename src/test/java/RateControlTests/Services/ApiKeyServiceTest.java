@@ -4,9 +4,11 @@ import RateControl.Clients.RaterManagementClient;
 import RateControl.Exceptions.BadRequestException;
 import RateControl.Exceptions.UnauthorizedException;
 import RateControl.Models.ApiKey.ApiKey;
+import RateControl.Models.ApiKey.ApiKeyEntity;
 import RateControl.Models.Auth.Auth;
 import RateControl.Models.Org.Org;
-import RateControl.Repositories.ApiKeyRepository;
+import RateControl.Repositories.PostgresApiKeyRepository;
+import RateControl.Repositories.RedisApiKeyRepository;
 import RateControl.Services.ApiKeyService;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +34,9 @@ public class ApiKeyServiceTest {
     @InjectMocks
     private ApiKeyService apiKeyService;
     @Mock
-    private ApiKeyRepository apiKeyRepository;
+    private RedisApiKeyRepository redisApiKeyRepository;
+    @Mock
+    private PostgresApiKeyRepository postgresApiKeyRepository;
     @Mock
     private RaterManagementClient raterManagementClient;
 
@@ -51,12 +55,11 @@ public class ApiKeyServiceTest {
         UUID serviceId = UUID.randomUUID();
 
         when(raterManagementClient.serviceExists(serviceId, testOrg.getId(), auth.getToken())).thenReturn(true);
-        when(apiKeyRepository.apiKeyExistsForServiceId(anyString())).thenReturn(false);
 
         Optional<ApiKey> apiKey = apiKeyService.createApiKey(testOrg, serviceId, auth);
 
         assertTrue(apiKey.isPresent());
-        verify(apiKeyRepository, times(1)).save(any(ApiKey.class), eq(serviceId));
+        verify(redisApiKeyRepository, times(1)).save(any(ApiKey.class), eq(serviceId));
     }
 
     @Test
@@ -64,11 +67,11 @@ public class ApiKeyServiceTest {
         UUID serviceId = UUID.randomUUID();
 
         when(raterManagementClient.serviceExists(serviceId, testOrg.getId(), auth.getToken())).thenReturn(true);
-        when(apiKeyRepository.apiKeyExistsForServiceId(anyString())).thenReturn(true);
+        when(postgresApiKeyRepository.getByServiceId(eq(serviceId))).thenReturn(Optional.of(new ApiKeyEntity()));
 
         assertThrows(BadRequestException.class, () -> apiKeyService.createApiKey(testOrg, serviceId, auth));
-        verify(apiKeyRepository, times(0)).save(any(ApiKey.class), any());
-        verify(apiKeyRepository, times(0)).save(any(String.class), any());
+        verify(redisApiKeyRepository, times(0)).save(any(ApiKey.class), any());
+        verify(redisApiKeyRepository, times(0)).save(any(String.class), any(String.class));
     }
 
     @Test
@@ -78,7 +81,7 @@ public class ApiKeyServiceTest {
         when(raterManagementClient.serviceExists(serviceId, testOrg.getId(), auth.getToken())).thenReturn(false);
 
         assertThrows(UnauthorizedException.class, () -> apiKeyService.createApiKey(testOrg, serviceId, auth));
-        verify(apiKeyRepository, times(0)).save(any(ApiKey.class), any());
-        verify(apiKeyRepository, times(0)).save(any(String.class), any());
+        verify(redisApiKeyRepository, times(0)).save(any(ApiKey.class), any());
+        verify(redisApiKeyRepository, times(0)).save(any(String.class), any(String.class));
     }
 }

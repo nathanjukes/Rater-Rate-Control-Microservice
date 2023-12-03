@@ -29,6 +29,7 @@ public class RaterManagementClient extends Client {
     private final String APIS_URI = "apis";
     private final String RULES_URI = "rules";
     private final String RULES_SEARCH_URI = "rules/search";
+    private final String BAD_REQUEST_RESPONSE = "Bad Request";
 
     public boolean serviceExists(UUID serviceId, UUID orgId, String auth) throws BadRequestException {
         final String url = getBaseUrl() + "/" + SERVICES_URI + "/" + serviceId;
@@ -106,8 +107,8 @@ public class RaterManagementClient extends Client {
         JSONObject jsonObject;
 
         jsonObject = getPostResource(url, auth, requestBody);
-        if (jsonObject == null || jsonObject.isEmpty()) {
-            return Optional.empty();
+        if (jsonObject == null || jsonObject.isEmpty() || BAD_REQUEST_RESPONSE.equals(jsonObject.optString("error"))) {
+            throw new BadRequestException("Rule not found");
         }
 
         int useLimit = (int) jsonObject.get("useLimit");

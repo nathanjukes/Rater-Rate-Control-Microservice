@@ -1,6 +1,7 @@
 package RateControlTests.Services;
 
 import RateControl.Clients.RaterManagementClient;
+import RateControl.Exceptions.BadRequestException;
 import RateControl.Models.ApiRequest.ApiRequest;
 import RateControl.Models.Auth.Auth;
 import RateControl.Models.Org.Org;
@@ -56,13 +57,14 @@ public class ApiProcessingServiceTest {
     }
 
     @Test
-    public void testGetApiStatus() throws ExecutionException, InterruptedException {
+    public void testGetApiStatus() throws ExecutionException, InterruptedException, BadRequestException {
         UUID userId = UUID.randomUUID();
         String apiKey = "apiKeyTest";
         String apiPath = "apiPathTest";
         String redisKey = String.format("minute_requests_dataIn:%s_api:%s_apiKey:%s", userId, apiPath, apiKey);
         ApiRequest apiRequest = new ApiRequest(apiKey, apiPath, userId);
 
+        when(apiKeyService.getServiceIdForApiKey(eq(apiRequest.getApiKey()))).thenReturn(UUID.randomUUID().toString());
         apiProcessingService.getApiStatus(apiRequest, false, auth);
 
         verify(apiProcessingRepository, times(1)).getMinuteRequests(eq(redisKey));
