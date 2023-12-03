@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "apiKeys", uniqueConstraints=@UniqueConstraint(columnNames = {"apiKey"}))
+@Table(name = "api_keys", uniqueConstraints=@UniqueConstraint(columnNames = {"apiKey"}))
 public class ApiKeyEntity {
     @Id
     private String apiKey;
