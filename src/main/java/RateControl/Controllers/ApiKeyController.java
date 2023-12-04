@@ -4,6 +4,7 @@ import RateControl.Exceptions.BadRequestException;
 import RateControl.Exceptions.InternalServerException;
 import RateControl.Exceptions.UnauthorizedException;
 import RateControl.Models.ApiKey.ApiKey;
+import RateControl.Models.ApiKey.ApiKeyEntity;
 import RateControl.Models.ApiKey.CreateApiKeyRequest;
 import RateControl.Models.Auth.Auth;
 import RateControl.Models.Org.Org;
@@ -45,7 +46,7 @@ public class ApiKeyController {
 
     @CrossOrigin
     @RequestMapping(value = "/keys/{serviceId}", method = GET)
-    public ResponseEntity<String> getApiKeyForService(@PathVariable String serviceId) {
+    public ResponseEntity<Optional<ApiKeyEntity>> getApiKeyForService(@PathVariable String serviceId) {
         return ResponseEntity.ok(apiKeyService.getApiKeyForServiceId(serviceId));
     }
 
