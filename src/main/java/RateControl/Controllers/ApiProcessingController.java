@@ -44,36 +44,28 @@ public class ApiProcessingController {
     }
 
     @RequestMapping(value = "", method = POST)
-    public ResponseEntity<RateLimitResponse> processRequest(@RequestBody @Valid ApiRequest apiRequest, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, ExecutionException, InterruptedException {
-        Optional<Org> org = securityService.getAuthedOrg();
-        Optional<Auth> auth = securityService.getAuthToken(servletRequest);
-        throwIfNoAuth(org);
-
+    public ResponseEntity<RateLimitResponse> processRequest(@RequestBody @Valid ApiRequest apiRequest) throws ExecutionException, InterruptedException {
         log.info("Processing API Request: " + apiRequest);
 
         CompletableFuture.runAsync(() -> apiProcessingService.processRequest(apiRequest));
-        RateLimitResponse rateLimitResponse = getApiStatus(apiRequest, true, auth.orElseThrow());
+        RateLimitResponse rateLimitResponse = getApiStatus(apiRequest, true);
 
         return ResponseEntity.ok(rateLimitResponse);
     }
 
     @RequestMapping(value = "/status", method = POST)
-    public ResponseEntity<RateLimitResponse> getApiStatus(@RequestBody @Valid ApiRequest apiRequest, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, ExecutionException, InterruptedException {
-        Optional<Org> org = securityService.getAuthedOrg();
-        Optional<Auth> auth = securityService.getAuthToken(servletRequest);
-        throwIfNoAuth(org);
-
+    public ResponseEntity<RateLimitResponse> getApiStatus(@RequestBody @Valid ApiRequest apiRequest) throws ExecutionException, InterruptedException {
         log.info("API Status Requested for: " + apiRequest.getApiPath());
 
-        return ResponseEntity.ok(getApiStatus(apiRequest, false, auth.orElseThrow()));
+        return ResponseEntity.ok(getApiStatus(apiRequest, false));
     }
 
-    private RateLimitResponse getApiStatus(ApiRequest apiRequest, boolean withOffset, Auth auth) throws ExecutionException, InterruptedException {
+    private RateLimitResponse getApiStatus(ApiRequest apiRequest, boolean withOffset) throws ExecutionException, InterruptedException {
         CompletableFuture<RateLimitResponse> rateLimitResponse = CompletableFuture.supplyAsync(() -> {
             try {
-                return apiProcessingService.getApiStatus(apiRequest, withOffset, auth);
+                return apiProcessingService.getApiStatus(apiRequest, withOffset);
             } catch (Exception e) {
-                log.info("Could not get api status for: ", apiRequest.toString());
+                log.info("Could not get api status for: {}", apiRequest.toString());
                 throw new RuntimeException(e);
             }
         });

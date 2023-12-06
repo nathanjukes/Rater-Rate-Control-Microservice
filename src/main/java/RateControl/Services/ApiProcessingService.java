@@ -8,6 +8,7 @@ import RateControl.Models.ApiRequest.ApiRequest;
 import RateControl.Models.ApiRequest.RateLimitResponse;
 import RateControl.Models.Auth.Auth;
 import RateControl.Repositories.ApiProcessingRepository;
+import RateControl.Security.SecurityService;
 import io.jsonwebtoken.lang.Strings;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
@@ -31,11 +32,13 @@ public class ApiProcessingService {
 
     private final ApiProcessingRepository apiProcessingRepository;
     private final ApiKeyService apiKeyService;
+    private final SecurityService securityService;
 
     @Autowired
-    public ApiProcessingService(ApiProcessingRepository apiProcessingRepository, ApiKeyService apiKeyService) {
+    public ApiProcessingService(ApiProcessingRepository apiProcessingRepository, ApiKeyService apiKeyService, SecurityService securityService) {
         this.apiProcessingRepository = apiProcessingRepository;
         this.apiKeyService = apiKeyService;
+        this.securityService = securityService;
     }
 
     public void processRequest(ApiRequest apiRequest) {
@@ -44,12 +47,12 @@ public class ApiProcessingService {
     }
 
     // withOffset used when we want to increment it by one for concurrent requests where the stored value is eventually correct
-    public RateLimitResponse getApiStatus(ApiRequest apiRequest, boolean withOffset, Auth auth) throws ExecutionException, InterruptedException {
+    public RateLimitResponse getApiStatus(ApiRequest apiRequest, boolean withOffset) throws ExecutionException, InterruptedException {
         CompletableFuture<Integer> requestsAggregate = CompletableFuture.supplyAsync(() -> getNumberOfRequestsLastMinute(apiRequest));
 
         CompletableFuture<Integer> apiLimit = CompletableFuture.supplyAsync(() -> {
             try {
-                return getMaxLimitRuleForAPI(apiRequest, auth);
+                return getMaxLimitRuleForAPI(apiRequest);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -80,7 +83,7 @@ public class ApiProcessingService {
         return requestCount;
     }
 
-    private int getMaxLimitRuleForAPI(ApiRequest apiRequest, Auth auth) throws BadRequestException, ExecutionException, InterruptedException {
+    private int getMaxLimitRuleForAPI(ApiRequest apiRequest) throws BadRequestException, ExecutionException, InterruptedException {
         log.info("Getting rule for api: {}", apiRequest.getApiPath());
 
         String serviceId = apiKeyService.getServiceIdForApiKey(apiRequest.getApiKey()); // Move to getRuleAndSave?
@@ -90,10 +93,10 @@ public class ApiProcessingService {
             throw new BadRequestException("Service id not found");
         }
 
-        return getRule(apiRequest, serviceId, auth);
+        return getRule(apiRequest, serviceId);
     }
 
-    private int getRule(ApiRequest apiRequest, String serviceId, Auth auth) throws BadRequestException, ExecutionException, InterruptedException {
+    private int getRule(ApiRequest apiRequest, String serviceId) throws BadRequestException, ExecutionException, InterruptedException {
         // Assume customLimit in cache, if not then use baseLimit and retrieve custom limit as user will not be over it
         // as they have not requested once in the last hour to have their custom rule in the cache
         CompletableFuture<Integer> customLimit =  CompletableFuture.supplyAsync(() -> apiProcessingRepository.getCustomApiRuleFromCache(apiRequest));
@@ -102,7 +105,7 @@ public class ApiProcessingService {
         // Move this to janitor ?
         CompletableFuture<Integer> apiLimit = CompletableFuture.supplyAsync(() -> {
             try {
-                return getRuleAndSave(apiRequest, serviceId, auth);
+                return getRuleAndSave(apiRequest, serviceId);
             } catch (BadRequestException | InternalServerException e) {
                 throw new RuntimeException(e);
             }
@@ -117,7 +120,8 @@ public class ApiProcessingService {
         }
     }
 
-    private int getRuleAndSave(ApiRequest apiRequest, String serviceId, Auth auth) throws BadRequestException, InternalServerException {
+    private int getRuleAndSave(ApiRequest apiRequest, String serviceId) throws BadRequestException, InternalServerException {
+        Auth auth = securityService.getServiceAccountAuth(serviceId);
         Optional<ApiLimitResponse> apiLimitRetrieved = apiProcessingRepository.getApiRule(apiRequest, serviceId, auth);
 
         if (apiLimitRetrieved.isPresent()) {

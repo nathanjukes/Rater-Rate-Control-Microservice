@@ -1,10 +1,13 @@
 package RateControl.Security;
 
+import RateControl.Models.Auth.TokenResponse;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -42,6 +45,30 @@ public class JwtUtil implements Serializable {
 
     private Boolean isTokenExpired(String token) {
         return extractExpirationDate(token).before(new Date());
+    }
+
+    public TokenResponse generateTokenResponse(Authentication authentication) {
+        Date expiration = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
+        String jwt = generateJwtToken(authentication, expiration);
+
+        return new TokenResponse(jwt, expiration);
+    }
+
+    private String generateJwtToken(Authentication authentication, Date expiration) {
+        UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
+        String username = userPrincipal.getUsername();
+
+        return generateJwtToken(username, expiration);
+    }
+
+    private String generateJwtToken(String username, Date expiration) {
+        return Jwts
+                .builder()
+                .setSubject(username)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(expiration)
+                .signWith(key(), SignatureAlgorithm.HS512)
+                .compact();
     }
 
     public String parseJwt(HttpServletRequest request) {

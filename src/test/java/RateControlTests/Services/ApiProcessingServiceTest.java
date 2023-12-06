@@ -65,7 +65,7 @@ public class ApiProcessingServiceTest {
         ApiRequest apiRequest = new ApiRequest(apiKey, apiPath, userId);
 
         when(apiKeyService.getServiceIdForApiKey(eq(apiRequest.getApiKey()))).thenReturn(UUID.randomUUID().toString());
-        apiProcessingService.getApiStatus(apiRequest, false, auth);
+        apiProcessingService.getApiStatus(apiRequest, false);
 
         verify(apiProcessingRepository, times(1)).getMinuteRequests(eq(redisKey));
         verify(apiKeyService, times(1)).getServiceIdForApiKey(apiRequest.getApiKey());

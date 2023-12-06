@@ -3,25 +3,49 @@ package RateControl.Security;
 import RateControl.Exceptions.InternalServerException;
 import RateControl.Exceptions.UnauthorizedException;
 import RateControl.Models.Auth.Auth;
+import RateControl.Models.Auth.TokenResponse;
 import RateControl.Models.Org.Org;
 import RateControl.Models.User.User;
 import RateControl.Services.UserService;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class SecurityService {
     private final UserService userService;
+    private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
     @Autowired
-    public SecurityService(UserService userService) {
+    public SecurityService(UserService userService, JwtUtil jwtUtil, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
         this.userService = userService;
+        this.jwtUtil = jwtUtil;
+        this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+    }
+
+    public Auth getServiceAccountAuth(String serviceId) {
+        Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(serviceId, serviceId)
+        );
+        TokenResponse jwt = jwtUtil.generateTokenResponse(auth);
+
+        return new Auth(jwt.getAccessToken());
     }
 
     public boolean hasOrg(String orgName) throws InternalServerException, UnauthorizedException {

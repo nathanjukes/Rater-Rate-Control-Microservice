@@ -40,9 +40,6 @@ public class ApiProcessingControllerTest {
         testOrg = new Org("TestOrg");
         testOrg.setId(UUID.randomUUID());
         auth = new Auth("test");
-
-        when(securityService.getAuthedOrg()).thenReturn(Optional.of(testOrg));
-        when(securityService.getAuthToken(any())).thenReturn(Optional.of(auth));
     }
 
     @Test
@@ -52,10 +49,10 @@ public class ApiProcessingControllerTest {
         UUID userId = UUID.randomUUID();
         ApiRequest apiRequest = new ApiRequest(apiKey, apiPath, userId);
 
-        apiProcessingController.processRequest(apiRequest, null);
+        apiProcessingController.processRequest(apiRequest);
 
         verify(apiProcessingService, times(1)).processRequest(eq(apiRequest));
-        verify(apiProcessingService, times(1)).getApiStatus(eq(apiRequest), eq(true), eq(auth));
+        verify(apiProcessingService, times(1)).getApiStatus(eq(apiRequest), eq(true));
     }
 
     @Test
@@ -65,8 +62,8 @@ public class ApiProcessingControllerTest {
         UUID userId = UUID.randomUUID();
         ApiRequest apiRequest = new ApiRequest(apiKey, apiPath, userId);
 
-        apiProcessingController.getApiStatus(apiRequest, null);
+        apiProcessingController.getApiStatus(apiRequest);
 
-        verify(apiProcessingService, times(1)).getApiStatus(eq(apiRequest), eq(false), eq(auth));
+        verify(apiProcessingService, times(1)).getApiStatus(eq(apiRequest), eq(false));
     }
 }
