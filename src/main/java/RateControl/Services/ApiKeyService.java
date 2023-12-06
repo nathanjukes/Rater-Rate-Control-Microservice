@@ -84,8 +84,8 @@ public class ApiKeyService {
         return serviceId;
     }
 
-    public String getApiKeyForServiceId(String serviceId) {
-        return redisApiKeyRepository.getByServiceId(serviceId);
+    public Optional<ApiKeyEntity> getApiKeyForServiceId(String serviceId) {
+        return postgresApiKeyRepository.getByServiceId(UUID.fromString(serviceId));
     }
 
     private ApiKey generateApiKey() throws NoSuchAlgorithmException {
