@@ -1,9 +1,11 @@
 package RateControl.Janitor;
 
+import RateControl.Config.RedisFormatter;
 import RateControl.Controllers.ApiProcessingController;
 import RateControl.Models.ApiRequest.ApiRequest;
 import RateControl.Models.Org.Org;
 import RateControl.Repositories.ApiProcessingRepository;
+import RateControl.Repositories.RedisApiKeyRepository;
 import RateControl.Services.ApiProcessingService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,16 +28,17 @@ public class RequestJanitor {
     private static final Logger log = LogManager.getLogger(RequestJanitor.class);
 
     private final ApiProcessingRepository apiProcessingRepository;
+    private final RedisApiKeyRepository redisApiKeyRepository;
 
     @Autowired
-    public RequestJanitor(ApiProcessingRepository apiProcessingRepository) {
+    public RequestJanitor(ApiProcessingRepository apiProcessingRepository, RedisApiKeyRepository redisApiKeyRepository) {
         this.apiProcessingRepository = apiProcessingRepository;
+        this.redisApiKeyRepository = redisApiKeyRepository;
     }
 
     // Handle api rule stored in cache
     // e.g. if /users has not been hit for 24 hours, the api rule for /users should be removed from cache
     // otherwise should be refreshed etc
-
     @Scheduled(fixedRate = 3600000) // every minute
     public void removeOldRequests() {
         List<String> requestSets = apiProcessingRepository.getAllApiRequestSets();
@@ -44,6 +47,11 @@ public class RequestJanitor {
         for (var i : requestSets) {
             apiProcessingRepository.removeRequests(i, timestampDayAgo);
         }
+    }
+
+    @Scheduled(fixedRate = 43200000) // every 12 hours
+    public void removeApiKeys() {
+        redisApiKeyRepository.flushApiKeys();
     }
 
     @Scheduled(fixedRate = 500) // every half second

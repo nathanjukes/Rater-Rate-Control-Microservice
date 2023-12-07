@@ -11,6 +11,7 @@ import java.util.UUID;
 public class RedisApiKeyRepository {
     private final StatefulRedisConnection<String, String> redisConnection;
     private final String APIKEY_TO_SERVICEID_KEY = "apikey_to_serviceid";
+
     @Autowired
     public RedisApiKeyRepository(StatefulRedisConnection<String, String> redisConnection) {
         this.redisConnection = redisConnection;
@@ -26,5 +27,9 @@ public class RedisApiKeyRepository {
 
     public String getByApiKey(String apiKey) {
         return redisConnection.sync().hget(APIKEY_TO_SERVICEID_KEY, apiKey);
+    }
+
+    public void flushApiKeys() {
+        redisConnection.sync().del(APIKEY_TO_SERVICEID_KEY);
     }
 }
