@@ -1,10 +1,12 @@
 package RateControl.Models.ApiRequest;
 
 import RateControl.Models.ApiKey.ApiKey;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
@@ -16,14 +18,16 @@ public class ApiRequest {
     @NotNull
     private String apiPath;
 
+    @JsonAlias({"userId", "userIp", "data"})
     @NotNull
-    private UUID userId;
+    @NotBlank
+    private String data;
 
     @JsonCreator
-    public ApiRequest(String apiKey, String apiPath, UUID userId) {
+    public ApiRequest(String apiKey, String apiPath, String data) {
         this.apiKey = apiKey;
         this.apiPath = apiPath;
-        this.userId = userId;
+        this.data = data;
     }
 
     public String getApiKey() {
@@ -34,13 +38,13 @@ public class ApiRequest {
         return apiPath;
     }
 
-    public UUID getUserId() {
-        return userId;
+    public String getData() {
+        return data;
     }
 
     @JsonIgnore
-    public boolean isTypeId() {
-        return true;
+    public RequestDataType getDataType() {
+        return RequestDataType.from(data);
     }
 
     @Override
@@ -48,7 +52,7 @@ public class ApiRequest {
         return "ApiRequest{" +
                 "apiKeyLength=" + apiKey.length() +
                 ", apiPath=" + apiPath +
-                ", userIdLength=" + userId.toString().length() +
+                ", dataLength=" + data.length() +
                 '}';
     }
 }

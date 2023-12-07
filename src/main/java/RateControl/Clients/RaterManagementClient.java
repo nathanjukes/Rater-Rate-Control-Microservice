@@ -54,37 +54,15 @@ public class RaterManagementClient extends Client {
 
     public Optional<ApiLimitResponse> getApiSearchRule(ApiRequest apiRequest, String serviceId, String auth) throws BadRequestException {
         JSONObject requestBody = new JSONObject();
-        requestBody.put("data", apiRequest.getUserId());
+        requestBody.put("data", apiRequest.getData());
         requestBody.put("apiPath", apiRequest.getApiPath());
         requestBody.put("serviceId", serviceId);
-
-        if (apiRequest.isTypeId()) {
-            requestBody.put("type", "id");
-        }
+        requestBody.put("type", apiRequest.getDataType().toString());
 
         try {
             return getApiSearchRule(requestBody, auth);
         } catch (BadRequestException ex) {
             log.info("Bad request: Cannot get api rule for apiId: {} serviceId: {]", apiRequest.getApiPath(), serviceId);
-            throw ex;
-        }
-    }
-
-    @Deprecated
-    public int getApiRule(ApiRequest apiRequest, String auth) throws BadRequestException {
-        JSONObject requestBody = new JSONObject();
-        requestBody.put("data", apiRequest.getUserId());
-        //requestBody.put("apiId", apiRequest.getApiPath());
-        //requestBody.put("apiId", UUID.fromString("ccb84c2d-b0c2-4ad2-9e15-c020a1846da3"));
-
-        if (apiRequest.isTypeId()) {
-            requestBody.put("type", "id");
-        }
-
-        try {
-            return getApiRule(requestBody, auth);
-        } catch (BadRequestException ex) {
-            log.info("Bad request: Cannot get api rule for apiId: {} userId: {}", apiRequest.getApiPath(), apiRequest.getUserId());
             throw ex;
         }
     }

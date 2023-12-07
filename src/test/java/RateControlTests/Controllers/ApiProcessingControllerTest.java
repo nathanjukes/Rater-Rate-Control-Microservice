@@ -47,7 +47,7 @@ public class ApiProcessingControllerTest {
         String apiKey = "apikeytest";
         String apiPath = "/api/test";
         UUID userId = UUID.randomUUID();
-        ApiRequest apiRequest = new ApiRequest(apiKey, apiPath, userId);
+        ApiRequest apiRequest = new ApiRequest(apiKey, apiPath, userId.toString());
 
         apiProcessingController.processRequest(apiRequest);
 
@@ -60,7 +60,7 @@ public class ApiProcessingControllerTest {
         String apiKey = "apikeytest";
         String apiPath = "/api/test";
         UUID userId = UUID.randomUUID();
-        ApiRequest apiRequest = new ApiRequest(apiKey, apiPath, userId);
+        ApiRequest apiRequest = new ApiRequest(apiKey, apiPath, userId.toString());
 
         apiProcessingController.getApiStatus(apiRequest);
 

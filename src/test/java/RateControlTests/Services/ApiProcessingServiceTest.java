@@ -46,7 +46,7 @@ public class ApiProcessingServiceTest {
         UUID userId = UUID.randomUUID();
         String apiKey = "apiKeyTest";
         String apiPath = "apiPathTest";
-        ApiRequest apiRequest = new ApiRequest(apiKey, apiPath, userId);
+        ApiRequest apiRequest = new ApiRequest(apiKey, apiPath, userId.toString());
 
         doNothing().when(apiProcessingRepository).saveRequest(any());
 
@@ -62,7 +62,7 @@ public class ApiProcessingServiceTest {
         String apiKey = "apiKeyTest";
         String apiPath = "apiPathTest";
         String redisKey = String.format("minute_requests_dataIn:%s_api:%s_apiKey:%s", userId, apiPath, apiKey);
-        ApiRequest apiRequest = new ApiRequest(apiKey, apiPath, userId);
+        ApiRequest apiRequest = new ApiRequest(apiKey, apiPath, userId.toString());
 
         when(apiKeyService.getServiceIdForApiKey(eq(apiRequest.getApiKey()))).thenReturn(UUID.randomUUID().toString());
         apiProcessingService.getApiStatus(apiRequest, false);
