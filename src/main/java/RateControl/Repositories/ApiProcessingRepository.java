@@ -64,7 +64,7 @@ public class ApiProcessingRepository {
     }
 
     public int getCustomApiRuleFromCache(ApiRequest apiRequest) {
-        String key = RedisFormatter.getCustomLimitKey(apiRequest.getData(), apiRequest.getApiPath(), apiRequest.getApiKey());
+        String key = RedisFormatter.getCustomLimitKey(apiRequest.getRedisDataString(), apiRequest.getApiPath(), apiRequest.getApiKey());
         try {
             return Integer.parseInt(redisConnection.sync().get(key));
         } catch (NumberFormatException ex) {
@@ -82,7 +82,7 @@ public class ApiProcessingRepository {
     }
 
     public void saveCustomApiRuleToCache(ApiRequest apiRequest, int limit) {
-        String key = RedisFormatter.getCustomLimitKey(apiRequest.getData(), apiRequest.getApiPath(), apiRequest.getApiKey());
+        String key = RedisFormatter.getCustomLimitKey(apiRequest.getRedisDataString(), apiRequest.getApiPath(), apiRequest.getApiKey());
         redisConnection.sync().set(key, String.valueOf(limit), SetArgs.Builder.ex(216000)); // 1 Hour
     }
 

@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 import java.util.UUID;
 
+import static RateControl.Models.ApiRequest.RequestDataType.role;
+
 @Component
 public class RaterManagementClient extends Client {
     @Value("${rater.management.host}")
@@ -54,10 +56,10 @@ public class RaterManagementClient extends Client {
 
     public Optional<ApiLimitResponse> getApiSearchRule(ApiRequest apiRequest, String serviceId, String auth) throws BadRequestException {
         JSONObject requestBody = new JSONObject();
-        requestBody.put("data", apiRequest.getData());
+        requestBody.put("data", apiRequest.getApiManagementData());
+        requestBody.put("type", apiRequest.getDataType().toString());
         requestBody.put("apiPath", apiRequest.getApiPath());
         requestBody.put("serviceId", serviceId);
-        requestBody.put("type", apiRequest.getDataType().toString());
 
         try {
             return getApiSearchRule(requestBody, auth);

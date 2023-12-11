@@ -42,7 +42,7 @@ public class ApiProcessingService {
     }
 
     public void processRequest(ApiRequest apiRequest) {
-        final String redisKey = getApiRequestsKey(apiRequest.getData().toString(), apiRequest.getApiPath(), apiRequest.getApiKey());
+        final String redisKey = getApiRequestsKey(apiRequest.getRedisDataString(), apiRequest.getApiPath(), apiRequest.getApiKey());
         CompletableFuture.runAsync(() -> apiProcessingRepository.saveRequest(redisKey));
     }
 
@@ -71,7 +71,7 @@ public class ApiProcessingService {
     }
 
     private int getNumberOfRequestsLastMinute(ApiRequest apiRequest) {
-        final String redisKey = getMinuteRequestsKey(apiRequest.getData().toString(), apiRequest.getApiPath(), apiRequest.getApiKey());
+        final String redisKey = getMinuteRequestsKey(apiRequest.getRedisDataString(), apiRequest.getApiPath(), apiRequest.getApiKey());
         int requestCount = 0;
 
         try {

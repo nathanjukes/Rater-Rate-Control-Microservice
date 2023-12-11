@@ -5,11 +5,14 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.jsonwebtoken.lang.Strings;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
+
+import static RateControl.Models.ApiRequest.RequestDataType.role;
 
 public class ApiRequest {
     @NotNull
@@ -23,11 +26,14 @@ public class ApiRequest {
     @NotBlank
     private String data;
 
+    private String role;
+
     @JsonCreator
-    public ApiRequest(String apiKey, String apiPath, String data) {
+    public ApiRequest(String apiKey, String apiPath, String data, String role) {
         this.apiKey = apiKey;
         this.apiPath = apiPath;
         this.data = data;
+        this.role = role;
     }
 
     public String getApiKey() {
@@ -42,9 +48,31 @@ public class ApiRequest {
         return data;
     }
 
+    public String getRole() {
+        return role;
+    }
+
     @JsonIgnore
     public RequestDataType getDataType() {
+        if (getRole() != null && Strings.hasText(getRole())) {
+            return RequestDataType.role;
+        }
         return RequestDataType.from(data);
+    }
+
+    @JsonIgnore
+    public String getRedisDataString() {
+        if (getRole() == null || !Strings.hasText(getRole())) {
+            return getData();
+        }
+        return getData() + "," + getRole();
+    }
+
+    public String getApiManagementData() {
+        if (getDataType().equals(RequestDataType.role)) {
+            return getRole();
+        }
+        return getData();
     }
 
     @Override
@@ -53,6 +81,7 @@ public class ApiRequest {
                 "apiKeyLength=" + apiKey.length() +
                 ", apiPath=" + apiPath +
                 ", dataLength=" + data.length() +
+                ", role=" + role +
                 '}';
     }
 }
