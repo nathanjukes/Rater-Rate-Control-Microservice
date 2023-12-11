@@ -16,14 +16,14 @@ public enum RequestDataType {
 
         }
 
-        if (isId(data)) {
+        if (isIpAddress(data)) {
             return ip;
         }
 
         return role;
     }
 
-    private static boolean isId(String ip) {
+    private static boolean isIpAddress(String ip) {
         return IP_ADDRESS_PATTERN.matcher(ip).matches();
     }
 }
