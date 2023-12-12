@@ -91,9 +91,14 @@ public class RaterManagementClient extends Client {
             throw new BadRequestException("Rule not found");
         }
 
-        int useLimit = (int) jsonObject.get("useLimit");
-        CustomRuleType customRuleType = CustomRuleType.valueOf(String.valueOf(jsonObject.get("customRuleType")));
-        return Optional.of(new ApiLimitResponse(useLimit, customRuleType));
+        int useLimit = (int) jsonObject.getJSONObject("rule").get("useLimit");
+        CustomRuleType customRuleType = CustomRuleType.valueOf((String) jsonObject.getJSONObject("rule").get("customRuleType"));
+        UUID orgId = UUID.fromString((String) jsonObject.get("orgId"));
+        UUID appId = UUID.fromString((String) jsonObject.get("appId"));
+        UUID serviceId = UUID.fromString((String) jsonObject.get("serviceId"));
+        UUID apiId = UUID.fromString((String) jsonObject.get("apiId"));
+
+        return Optional.of(new ApiLimitResponse(useLimit, customRuleType, orgId, appId, serviceId, apiId));
     }
 
     private String getBaseUrl() {

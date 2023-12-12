@@ -28,6 +28,14 @@ public class ApiRequest {
 
     private String role;
 
+    private UUID orgId;
+
+    private UUID appId;
+
+    private UUID serviceId;
+
+    private UUID apiId;
+
     @JsonCreator
     public ApiRequest(String apiKey, String apiPath, String data, String role) {
         this.apiKey = apiKey;
@@ -73,6 +81,42 @@ public class ApiRequest {
             return getRole();
         }
         return getData();
+    }
+
+    public UUID getOrgId() {
+        return orgId;
+    }
+
+    public void setOrgId(UUID orgId) {
+        this.orgId = orgId;
+    }
+
+    public UUID getAppId() {
+        return appId;
+    }
+
+    public void setAppId(UUID appId) {
+        this.appId = appId;
+    }
+
+    public UUID getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(UUID serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    public UUID getApiId() {
+        return apiId;
+    }
+
+    public void setApiId(UUID apiId) {
+        this.apiId = apiId;
+    }
+
+    public boolean isMetaDataPresent() {
+        return orgId != null && appId != null && serviceId != null && apiId != null;
     }
 
     @Override

@@ -7,6 +7,7 @@ import RateControl.Models.ApiLimit.CustomRuleType;
 import RateControl.Models.ApiRequest.ApiRequest;
 import RateControl.Models.ApiRequest.RateLimitResponse;
 import RateControl.Models.Auth.Auth;
+import RateControl.Models.Metrics.RequestMetric;
 import RateControl.Repositories.ApiProcessingRepository;
 import RateControl.Security.SecurityService;
 import io.jsonwebtoken.lang.Strings;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -33,12 +35,14 @@ public class ApiProcessingService {
     private final ApiProcessingRepository apiProcessingRepository;
     private final ApiKeyService apiKeyService;
     private final SecurityService securityService;
+    private final MetricsService metricsService;
 
     @Autowired
-    public ApiProcessingService(ApiProcessingRepository apiProcessingRepository, ApiKeyService apiKeyService, SecurityService securityService) {
+    public ApiProcessingService(ApiProcessingRepository apiProcessingRepository, ApiKeyService apiKeyService, SecurityService securityService, MetricsService metricsService) {
         this.apiProcessingRepository = apiProcessingRepository;
         this.apiKeyService = apiKeyService;
         this.securityService = securityService;
+        this.metricsService = metricsService;
     }
 
     public void processRequest(ApiRequest apiRequest) {
@@ -68,6 +72,14 @@ public class ApiProcessingService {
         }
 
         return new RateLimitResponse(apiRequest.getApiPath(), currentLoad > maxLoad, currentLoad, maxLoad);
+    }
+
+    public void sendMetrics(ApiRequest apiRequest, boolean requestAccepted) throws InterruptedException {
+        if (!apiRequest.isMetaDataPresent()) {
+            Thread.sleep(1000);
+        }
+        RequestMetric requestMetric = RequestMetric.from(apiRequest, requestAccepted);
+        metricsService.saveMetric(requestMetric);
     }
 
     private int getNumberOfRequestsLastMinute(ApiRequest apiRequest) {
@@ -127,6 +139,10 @@ public class ApiProcessingService {
         if (apiLimitRetrieved.isPresent()) {
             Optional<CustomRuleType> customRuleType = apiLimitRetrieved.map(ApiLimitResponse::getCustomRuleType);
             Optional<Integer> newLimit = apiLimitRetrieved.map(ApiLimitResponse::getUseLimit);
+            apiRequest.setOrgId(apiLimitRetrieved.map(ApiLimitResponse::getOrgId).get());
+            apiRequest.setAppId(apiLimitRetrieved.map(ApiLimitResponse::getAppId).get());
+            apiRequest.setServiceId(apiLimitRetrieved.map(ApiLimitResponse::getServiceId).get());
+            apiRequest.setApiId(apiLimitRetrieved.map(ApiLimitResponse::getApiId).get());
 
             if (newLimit.isPresent()) {
                 if (customRuleType.equals(Optional.of(custom))) {

@@ -83,7 +83,7 @@ public class ApiProcessingRepository {
 
     public void saveCustomApiRuleToCache(ApiRequest apiRequest, int limit) {
         String key = RedisFormatter.getCustomLimitKey(apiRequest.getRedisDataString(), apiRequest.getApiPath(), apiRequest.getApiKey());
-        redisConnection.sync().set(key, String.valueOf(limit), SetArgs.Builder.ex(216000)); // 1 Hour
+        redisConnection.sync().set(key, String.valueOf(limit), SetArgs.Builder.ex(216000)); // 1 Hour -> Too Long? What if client changes rule, will take an hour max to be reflected
     }
 
     public void saveBaseApiRuleToCache(String apiPath, String apiKey, int limit) {

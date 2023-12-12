@@ -50,6 +50,17 @@ public class ApiProcessingController {
         CompletableFuture.runAsync(() -> apiProcessingService.processRequest(apiRequest));
         RateLimitResponse rateLimitResponse = getApiStatus(apiRequest, true);
 
+        // Send metrics
+        CompletableFuture.runAsync(() ->
+                {
+                    try {
+                        apiProcessingService.sendMetrics(apiRequest, !rateLimitResponse.isRateExceeded());
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+        );
+
         return ResponseEntity.ok(rateLimitResponse);
     }
 

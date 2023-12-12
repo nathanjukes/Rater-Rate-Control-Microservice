@@ -52,7 +52,7 @@ public class ApiProcessingServiceTest {
 
         apiProcessingService.processRequest(apiRequest);
 
-        Thread.sleep(100);
+        Thread.sleep(200);
         verify(apiProcessingRepository, times(1)).saveRequest(any());
     }
 
