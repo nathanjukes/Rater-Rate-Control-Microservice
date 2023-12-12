@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public class ApiLimitResponse {
     private int useLimit;
+
     private CustomRuleType customRuleType;
 
     private UUID orgId;
