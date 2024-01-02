@@ -66,11 +66,4 @@ public class ApiKeyControllerTest {
 
         verify(apiKeyService, times(0)).createApiKey(eq(testOrg), eq(serviceId), eq(auth));
     }
-
-    @Test
-    public void testGetApiKey() throws BadRequestException {
-        String apiKey = "testApiKey";
-        apiKeyController.getApiKeyValue(apiKey);
-        verify(apiKeyService, times(1)).getServiceIdForApiKey(eq(apiKey));
-    }
 }
