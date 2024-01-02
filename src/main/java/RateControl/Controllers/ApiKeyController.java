@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -39,14 +40,17 @@ public class ApiKeyController {
         this.securityService = securityService;
     }
 
-    @RequestMapping(value = "/{apiKey}", method = GET)
-    public ResponseEntity<String> getApiKeyValue(@PathVariable String apiKey) throws BadRequestException {
-        return ResponseEntity.ok(apiKeyService.getServiceIdForApiKey(apiKey));
-    }
-
     @CrossOrigin
     @RequestMapping(value = "/keys/{serviceId}", method = GET)
-    public ResponseEntity<Optional<ApiKeyEntity>> getApiKeyForService(@PathVariable String serviceId) {
+    public ResponseEntity<Optional<ApiKeyEntity>> getApiKeyForService(@PathVariable String serviceId, HttpServletRequest servletRequest) throws InternalServerException, UnauthorizedException, BadRequestException {
+        Optional<Auth> auth = securityService.getAuthToken(servletRequest);
+        Optional<Org> org = securityService.getAuthedOrg();
+        throwIfNoAuth(org);
+
+        if (serviceId == null || !apiKeyService.validateServiceId(org.orElseThrow(), UUID.fromString(serviceId), auth.orElseThrow())) {
+            throw new BadRequestException();
+        }
+
         return ResponseEntity.ok(apiKeyService.getApiKeyForServiceId(serviceId));
     }
 

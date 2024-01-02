@@ -94,7 +94,7 @@ public class ApiKeyService {
         return new ApiKey(Base64.getUrlEncoder().encodeToString(bytes));
     }
 
-    private boolean validateServiceId(Org org, UUID serviceId, Auth auth) throws BadRequestException {
+    public boolean validateServiceId(Org org, UUID serviceId, Auth auth) throws BadRequestException {
         log.info("Validating service id exists for orgId: {} serviceId: {}", org.getId(), serviceId);
         return raterManagementClient.serviceExists(serviceId, org.getId(), auth.getToken());
     }
