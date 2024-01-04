@@ -25,6 +25,10 @@ public class RedisApiKeyRepository {
         redisConnection.sync().hset(APIKEY_TO_SERVICEID_KEY, apiKey, serviceId);
     }
 
+    public void delete(String apiKey) {
+        redisConnection.sync().hdel(APIKEY_TO_SERVICEID_KEY, apiKey);
+    }
+
     public String getByApiKey(String apiKey) {
         return redisConnection.sync().hget(APIKEY_TO_SERVICEID_KEY, apiKey);
     }

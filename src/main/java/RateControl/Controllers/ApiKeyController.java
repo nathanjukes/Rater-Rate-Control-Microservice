@@ -22,9 +22,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static RateControl.Security.SecurityService.throwIfNoAuth;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 @RestController
 @RequestMapping(value = "/auth")
@@ -52,6 +51,22 @@ public class ApiKeyController {
         }
 
         return ResponseEntity.ok(apiKeyService.getApiKeyForServiceId(serviceId));
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = "/{apiKey}", method = DELETE)
+    public ResponseEntity<?> deleteApiKey(@PathVariable String apiKey, HttpServletRequest servletRequest) throws UnauthorizedException, InternalServerException, BadRequestException {
+        Optional<Auth> auth = securityService.getAuthToken(servletRequest);
+        Optional<Org> org = securityService.getAuthedOrg();
+        throwIfNoAuth(org);
+
+        if (apiKey == null || !apiKeyService.validateApiKey(org.orElseThrow(), apiKey, auth.orElseThrow())) {
+            throw new BadRequestException();
+        }
+
+        apiKeyService.deleteApiKey(apiKey);
+
+        return ResponseEntity.ok().build();
     }
 
     @CrossOrigin

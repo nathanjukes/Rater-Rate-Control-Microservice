@@ -98,4 +98,15 @@ public class ApiKeyService {
         log.info("Validating service id exists for orgId: {} serviceId: {}", org.getId(), serviceId);
         return raterManagementClient.serviceExists(serviceId, org.getId(), auth.getToken());
     }
+
+    public boolean validateApiKey(Org org, String apiKey, Auth auth) throws BadRequestException {
+        log.info("Validating api key exists for orgId: {}", org.getId());
+        UUID serviceId = UUID.fromString(getServiceIdForApiKey(apiKey));
+        return raterManagementClient.serviceExists(serviceId, org.getId(), auth.getToken());
+    }
+
+    public void deleteApiKey(String apiKey) {
+        redisApiKeyRepository.delete(apiKey);
+        postgresApiKeyRepository.deleteByApiKey(apiKey);
+    }
 }
