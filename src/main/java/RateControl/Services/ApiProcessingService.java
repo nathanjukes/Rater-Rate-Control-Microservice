@@ -76,7 +76,7 @@ public class ApiProcessingService {
 
     public void sendMetrics(ApiRequest apiRequest, boolean requestAccepted) throws InterruptedException {
         if (!apiRequest.isMetaDataPresent()) {
-            Thread.sleep(1000);
+            Thread.sleep(5000);
             if (!apiRequest.isMetaDataPresent()) {
                 return;
             }
