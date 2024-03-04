@@ -75,15 +75,13 @@ public class ApiProcessingService {
     }
 
     public void sendMetrics(ApiRequest apiRequest, boolean requestAccepted) throws InterruptedException {
-        if (!apiRequest.isMetaDataPresent()) {
-            Thread.sleep(5000);
-            if (!apiRequest.isMetaDataPresent()) {
-                Thread.sleep(5000);
-                if (!apiRequest.isMetaDataPresent()) {
-                    return;
-                }
+        for (int a = 0; a < 5; a++) {
+            if (apiRequest.isMetaDataPresent()) {
+                break;
             }
+            Thread.sleep(2500);
         }
+
         RequestMetric requestMetric = RequestMetric.from(apiRequest, requestAccepted);
         metricsService.saveMetric(requestMetric);
     }
