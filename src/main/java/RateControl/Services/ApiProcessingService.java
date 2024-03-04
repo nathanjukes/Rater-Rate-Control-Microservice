@@ -78,7 +78,10 @@ public class ApiProcessingService {
         if (!apiRequest.isMetaDataPresent()) {
             Thread.sleep(5000);
             if (!apiRequest.isMetaDataPresent()) {
-                return;
+                Thread.sleep(5000);
+                if (!apiRequest.isMetaDataPresent()) {
+                    return;
+                }
             }
         }
         RequestMetric requestMetric = RequestMetric.from(apiRequest, requestAccepted);
