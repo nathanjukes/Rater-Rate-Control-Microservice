@@ -54,7 +54,7 @@ public class RequestJanitor {
         redisApiKeyRepository.flushApiKeys();
     }
 
-    @Scheduled(fixedRate = 500) // every half second
+    @Scheduled(fixedRate = 250) // every quarter second
     public void aggregateRequestData() {
         // For every sorted set: requests_user:1_api:post:/users
         // Store aggregated value of total number of requests within the last 60 seconds
